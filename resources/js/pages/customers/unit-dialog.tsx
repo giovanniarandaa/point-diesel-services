@@ -31,7 +31,7 @@ export default function UnitDialog({ customerId, unit, mode, children }: UnitDia
         make: unit?.make ?? '',
         model: unit?.model ?? '',
         engine: unit?.engine ?? '',
-        mileage: unit?.mileage ?? 0,
+        mileage: unit?.mileage?.toString() ?? '',
     });
 
     const submit: FormEventHandler = (e) => {
@@ -87,7 +87,12 @@ export default function UnitDialog({ customerId, unit, mode, children }: UnitDia
                                 required
                             />
                             <InputError message={errors.vin} />
-                            <p className="text-muted-foreground text-xs">17 characters (A-Z, 0-9, no I/O/Q)</p>
+                            <div className="flex justify-between">
+                                <p className="text-muted-foreground text-xs">A-Z, 0-9, no I/O/Q</p>
+                                <p className={`text-xs ${data.vin.length === 17 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    {data.vin.length}/17
+                                </p>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -135,7 +140,7 @@ export default function UnitDialog({ customerId, unit, mode, children }: UnitDia
                                 type="number"
                                 min="0"
                                 value={data.mileage}
-                                onChange={(e) => setData('mileage', parseInt(e.target.value) || 0)}
+                                onChange={(e) => setData('mileage', e.target.value)}
                                 placeholder="0"
                                 required
                             />
