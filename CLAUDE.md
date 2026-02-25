@@ -1,111 +1,77 @@
-# Point Diesel Services
+# CLAUDE.md
 
-## Stack
-
-- **Backend**: Laravel 12, PHP 8.3
-- **Frontend**: React 19, TypeScript, Inertia.js v2, Tailwind CSS v4, shadcn/ui
-- **Database**: MySQL 8
-- **Testing**: Pest PHP (via PHPUnit)
-- **Code Quality**: Laravel Pint, Larastan (PHPStan level 8), IDE Helper
-- **Build**: Vite
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
 
 ```bash
-# Development
-composer dev                  # Start all dev services (server, queue, logs, vite)
-php artisan serve             # Laravel dev server only
-npm run dev                   # Vite dev server only
+# Development (runs server, queue, logs, vite concurrently)
+composer dev
 
 # Testing
-php artisan test              # Run all tests (Pest)
-composer test                 # Alias for php artisan test
+php artisan test                                          # All tests
+php artisan test tests/Feature/Auth/AuthenticationTest.php  # Single file
+php artisan test --filter test_users_can_authenticate       # Single test
 
 # Code Quality
-composer format               # Fix PHP code style (Pint)
-composer format:test          # Check PHP code style without fixing
-composer analyze              # Run static analysis (Larastan level 8)
-npm run lint                  # ESLint (with auto-fix)
-npm run format                # Prettier (auto-fix)
-npm run format:check          # Prettier (check only)
+composer format            # Fix PHP (Pint)
+composer format:test       # Check PHP (Pint, no write)
+composer analyze           # Static analysis (Larastan level 8)
+npm run lint               # ESLint + auto-fix
+npm run format             # Prettier + auto-fix
+npm run format:check       # Prettier check only
+npx tsc --noEmit           # TypeScript type check
 
-# Build
-npm run build                 # Production build
-npx tsc --noEmit              # TypeScript type check
-
-# IDE Helpers
-composer ide-helper           # Generate all IDE helper files
-
-# Database
-php artisan migrate           # Run migrations
-php artisan migrate:fresh --seed  # Reset and seed database
+# Code Generation
+composer ide-helper                  # Regenerate IDE helper files
+php artisan typescript:transform     # Generate TS types from PHP DTOs/Enums
 ```
 
-## Project Structure
+## Architecture
 
-```
-app/
-├── Actions/          # Single-responsibility business logic classes
-├── Data/             # DTOs using Spatie Laravel Data
-├── Http/
-│   ├── Controllers/  # Thin controllers (delegate to Actions/Services)
-│   ├── Middleware/
-│   └── Requests/     # Form requests for validation
-├── Models/           # Eloquent models
-├── Repositories/     # Data access layer
-├── Services/         # Complex logic orchestrating multiple Actions
-└── Providers/
+**Laravel 12 + Inertia.js v2 + React 19 monolith.** Laravel handles routing, auth, and data; Inertia bridges the two; React renders the UI.
 
-resources/js/
-├── components/       # Reusable React components (shadcn/ui based)
-├── layouts/          # Page layouts
-├── lib/              # Utility functions
-├── pages/            # Inertia page components (mapped to routes)
-└── types/            # TypeScript type definitions
+### Request Flow
+1. Request hits Laravel route (`routes/web.php`) → Controller
+2. Controller calls Action/Service → returns `Inertia::render('page-name', $props)`
+3. `HandleInertiaRequests` middleware injects shared props (`auth.user`, `name`, `quote`)
+4. Inertia resolves `resources/js/pages/{page-name}.tsx` and renders with props
+5. Client-side navigation uses Inertia router (no full page reloads)
 
-routes/
-├── web.php           # Main web routes
-├── auth.php          # Authentication routes
-├── settings.php      # Settings routes
-└── console.php       # Artisan console commands
+### Backend Layers
+- **Controllers** — thin, delegate to Actions/Services, return Inertia responses
+- **Actions** (`app/Actions/`) — single-responsibility business logic, one public `execute` or `handle` method
+- **Services** (`app/Services/`) — orchestrate multiple Actions for complex operations
+- **Data** (`app/Data/`) — DTOs via Spatie Laravel Data; never pass raw arrays between layers
+- **Repositories** (`app/Repositories/`) — data access abstraction over Eloquent
+- **Models** (`app/Models/`) — Eloquent models; User implements `MustVerifyEmail`
 
-tests/
-├── Feature/          # Feature/integration tests
-└── Unit/             # Unit tests
-```
+### Frontend
+- **Pages** in `resources/js/pages/` — mapped to routes, receive typed props from controllers
+- **Components** in `resources/js/components/` — shadcn/ui based (Radix UI primitives + Tailwind v4)
+- **Path alias:** `@/*` maps to `resources/js/*` (e.g., `import { Button } from '@/components/ui/button'`)
+- **Route helper:** `route('name')` via Ziggy (available in all components)
+- **Shared types** in `resources/js/types/index.ts` — `User`, `SharedData`, `Auth` interfaces
+- **Generated types** output to `resources/types/generated.d.ts` via `php artisan typescript:transform`
+
+### Testing
+- **Pest PHP** with `RefreshDatabase` trait on Feature tests
+- Tests use **SQLite :memory:** database (configured in `phpunit.xml`), not MySQL
+- Feature tests in `tests/Feature/`, unit tests in `tests/Unit/`
 
 ## Conventions
 
-### PHP / Laravel
-- Use **Actions** for single-responsibility business logic (one public `execute` or `handle` method)
-- Use **Spatie Laravel Data** for DTOs — never pass raw arrays between layers
-- Controllers must be thin: validate, call Action/Service, return response
-- Follow PSR-12 via Laravel Pint (default Laravel preset)
-- All code must pass Larastan level 8
-- Write Pest tests for all new features
-- Use type hints and return types everywhere
+### PHP
+- All code must pass **Larastan level 8** — full type hints, return types, no mixed types
+- `$request->user()` returns `User|null` — always use `/** @var \App\Models\User $user */` assertions in auth-protected routes
+- Laravel Pint with default Laravel preset (PSR-12)
+- Spatie Laravel Data for DTOs — annotate with `#[TypeScript]` to auto-generate frontend types
 
-### Frontend / React
-- Use TypeScript for all files (`.tsx` / `.ts`)
-- Use shadcn/ui components as base — customize via Tailwind CSS v4
-- Page components go in `resources/js/pages/`
-- Shared components go in `resources/js/components/`
-- Use Inertia `router` for navigation, never raw `fetch` for page transitions
-- Props from Laravel controllers are typed via generated TypeScript types
-
-### Database
-- Use MySQL 8 with `utf8mb4_unicode_ci` collation
-- Migrations use descriptive names
-- Always use foreign key constraints
-- Use `$table->id()` for primary keys (unsigned big integer)
+### Frontend
+- TypeScript strict mode — no `any` types
+- Prettier: 150 char width, 4-space tabs, single quotes, organized imports, Tailwind class sorting
+- Tailwind utility functions `clsx` and `cn` for conditional classes
 
 ### Git
-- Branch from `main`
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
-- CI must pass before merge (Pint, Larastan, Tests, Build)
-
-## Environment
-
-- `.env` — local config (never commit)
-- `.env.example` — template with MySQL defaults
-- Database: `point_diesel_services` (local), credentials in `.env`
+- CI runs: Pint, Larastan, Pest, ESLint, Prettier, TypeScript check, Vite build
