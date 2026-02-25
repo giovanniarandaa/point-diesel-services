@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test:*)",
+      "Bash(npm run format:*)",
+      "Bash(npx tsc:*)",
+      "Bash(composer analyze:*)",
+      "Bash(php artisan test:*)",
+      "Bash(vendor/bin/pint:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILEPATH=$(echo \"$TOOL_INPUT\" | grep -o '\"file_path\":\\s*\"[^\"]*\"' | head -1 | sed 's/\"file_path\":\\s*\"//;s/\"$//'); if [ -n \"$FILEPATH\" ] && echo \"$FILEPATH\" | grep -q '\\.php$'; then vendor/bin/pint \"$FILEPATH\" --quiet 2>/dev/null; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILEPATH=$(echo \"$TOOL_INPUT\" | grep -o '\"file_path\":\\s*\"[^\"]*\"' | head -1 | sed 's/\"file_path\":\\s*\"//;s/\"$//'); if [ -n \"$FILEPATH\" ] && echo \"$FILEPATH\" | grep -qE '\\.(tsx?|jsx?|css)$'; then npx prettier --write \"$FILEPATH\" --log-level silent 2>/dev/null; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
