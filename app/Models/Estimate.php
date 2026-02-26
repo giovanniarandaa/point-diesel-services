@@ -68,6 +68,13 @@ class Estimate extends Model
     /**
      * @var list<string>
      */
+    protected $hidden = [
+        'approved_ip',
+    ];
+
+    /**
+     * @var list<string>
+     */
     protected $fillable = [
         'estimate_number',
         'customer_id',

@@ -85,13 +85,24 @@ test('already approved estimate approval is idempotent', function () {
     expect($estimate->approved_at->toISOString())->toBe($originalApprovedAt);
 });
 
+test('draft estimate returns 404 on public view', function () {
+    $estimate = Estimate::factory()->create([
+        'status' => EstimateStatus::Draft,
+        'public_token' => Str::uuid()->toString(),
+    ]);
+
+    $this->get(route('estimate.public.show', $estimate->public_token))
+        ->assertNotFound();
+});
+
 test('draft estimate cannot be approved via public link', function () {
     $estimate = Estimate::factory()->create([
         'status' => EstimateStatus::Draft,
         'public_token' => Str::uuid()->toString(),
     ]);
 
-    $this->post(route('estimate.public.approve', $estimate->public_token));
+    $this->post(route('estimate.public.approve', $estimate->public_token))
+        ->assertNotFound();
 
     $estimate->refresh();
     expect($estimate->status)->toBe(EstimateStatus::Draft);
@@ -131,4 +142,62 @@ test('public estimate loads customer and unit relationships', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->has('estimate.customer')
             ->has('estimate.unit'));
+});
+
+test('public estimate loads lines relationship', function () {
+    $estimate = Estimate::factory()->sent()->create();
+
+    $this->get(route('estimate.public.show', $estimate->public_token))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('estimate.lines'));
+});
+
+test('markAsApproved sets status, timestamp and IP', function () {
+    $estimate = Estimate::factory()->sent()->create();
+
+    $estimate->markAsApproved('192.168.1.100');
+    $estimate->refresh();
+
+    expect($estimate->status)->toBe(EstimateStatus::Approved);
+    expect($estimate->approved_at)->not->toBeNull();
+    expect($estimate->approved_ip)->toBe('192.168.1.100');
+});
+
+test('idempotent approval does not set flash success for new approval', function () {
+    $estimate = Estimate::factory()->approved()->create();
+
+    $this->post(route('estimate.public.approve', $estimate->public_token))
+        ->assertRedirect()
+        ->assertSessionHas('success', 'This estimate has already been approved.');
+});
+
+test('idempotent invoiced approval does not set flash success for new approval', function () {
+    $estimate = Estimate::factory()->invoiced()->create();
+
+    $this->post(route('estimate.public.approve', $estimate->public_token))
+        ->assertRedirect()
+        ->assertSessionHas('success', 'This estimate has already been approved.');
+});
+
+test('public estimate hides sensitive fields', function () {
+    $estimate = Estimate::factory()->sent()->create();
+
+    $this->get(route('estimate.public.show', $estimate->public_token))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->missing('estimate.approved_ip')
+            ->missing('estimate.customer_id')
+            ->missing('estimate.unit_id'));
+});
+
+test('public estimate customer only returns name', function () {
+    $estimate = Estimate::factory()->sent()->create();
+
+    $this->get(route('estimate.public.show', $estimate->public_token))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('estimate.customer.name')
+            ->missing('estimate.customer.phone')
+            ->missing('estimate.customer.email'));
 });

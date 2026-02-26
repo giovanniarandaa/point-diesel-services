@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-// Helper: create customer via the UI
 async function createCustomer(page: import('@playwright/test').Page, name: string) {
     await page.goto('/customers/create');
     await page.getByLabel('Name').fill(name);
@@ -9,7 +8,6 @@ async function createCustomer(page: import('@playwright/test').Page, name: strin
     await expect(page).toHaveURL(/\/customers\/\d+/);
 }
 
-// Helper: create a part via the UI
 async function createPart(page: import('@playwright/test').Page, sku: string, name: string) {
     await page.goto('/parts/create');
     await page.getByLabel('SKU').fill(sku);
@@ -22,7 +20,6 @@ async function createPart(page: import('@playwright/test').Page, sku: string, na
     await expect(page).toHaveURL(/\/parts\/\d+/);
 }
 
-// Helper: create estimate, send it, and return the public URL
 async function createAndSendEstimate(page: import('@playwright/test').Page) {
     const customerName = 'PET Public Motors LLC';
     const partSku = 'PET-OIL-001';
@@ -42,16 +39,14 @@ async function createAndSendEstimate(page: import('@playwright/test').Page) {
     await page.getByRole('button', { name: 'Create Estimate' }).click();
     await expect(page).toHaveURL(/\/estimates\/\d+/);
 
-    // Send the estimate
     page.on('dialog', (dialog) => dialog.accept());
     await page.getByRole('button', { name: 'Send' }).click();
     await expect(page.getByText('Sent', { exact: true })).toBeVisible();
 
-    // Grant clipboard permissions and copy the public link
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.getByRole('button', { name: 'Copy Link' }).click();
-    const publicUrl = await page.evaluate(() => navigator.clipboard.readText());
-    return publicUrl;
+
+    return page.evaluate(() => navigator.clipboard.readText());
 }
 
 test.describe('Public Estimate Portal', () => {
@@ -70,14 +65,11 @@ test.describe('Public Estimate Portal', () => {
 
         await page.goto(publicUrl);
 
-        // Verify estimate content is visible
         await expect(page.getByRole('heading', { name: /EST-\d+/ })).toBeVisible();
         await expect(page.getByText('PET Public Motors LLC')).toBeVisible();
         await expect(page.getByText('Line Items')).toBeVisible();
         await expect(page.getByText('PET Oil Filter Premium')).toBeVisible();
         await expect(page.getByText('Totals')).toBeVisible();
-
-        // Verify action buttons
         await expect(page.getByRole('button', { name: 'Approve Estimate' })).toBeVisible();
         await expect(page.getByRole('link', { name: 'Call Shop' })).toBeVisible();
         await expect(page.getByRole('link', { name: 'WhatsApp' })).toBeVisible();
@@ -91,20 +83,12 @@ test.describe('Public Estimate Portal', () => {
 
         await page.goto(publicUrl);
 
-        // Approve the estimate
         page.on('dialog', (dialog) => dialog.accept());
         await page.getByRole('button', { name: 'Approve Estimate' }).click();
-
-        // Wait for page to reload after redirect
         await expect(page).toHaveURL(publicUrl);
 
-        // Verify approval banner is shown
         await expect(page.getByText('Already Approved')).toBeVisible();
-
-        // Verify approve button is no longer visible
         await expect(page.getByRole('button', { name: 'Approve Estimate' })).not.toBeVisible();
-
-        // Contact buttons should still be visible
         await expect(page.getByRole('link', { name: 'Call Shop' })).toBeVisible();
         await expect(page.getByRole('link', { name: 'WhatsApp' })).toBeVisible();
 
@@ -114,11 +98,8 @@ test.describe('Public Estimate Portal', () => {
     test('approved estimate shows correct status in admin view', async ({ page }) => {
         await page.goto('/estimates');
 
-        // Filter by approved status
         await page.getByRole('button', { name: 'Approved' }).click();
         await expect(page).toHaveURL(/status=approved/);
-
-        // Verify the estimate appears with approved status
         await expect(page.getByText('PET Public Motors LLC').first()).toBeVisible();
     });
 });

@@ -1,16 +1,21 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Toaster } from '@/components/ui/sonner';
-import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+
+interface PublicPageProps {
+    name: string;
+    flash: { success: string | null };
+    [key: string]: unknown;
+}
 
 interface PublicEstimateLayoutProps {
     children: React.ReactNode;
 }
 
 export default function PublicEstimateLayout({ children }: PublicEstimateLayoutProps) {
-    const { name, flash } = usePage<SharedData>().props;
+    const { name, flash } = usePage<PublicPageProps>().props;
 
     useEffect(() => {
         if (flash.success) {

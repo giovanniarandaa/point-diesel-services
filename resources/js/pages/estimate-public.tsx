@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import PublicEstimateLayout from '@/layouts/public-estimate-layout';
+import { formatCurrency, formatLineType, STATUS_LABELS, STATUS_VARIANTS } from '@/lib/estimate-helpers';
 import { type Estimate } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { CheckCircle2, MessageCircle, Phone } from 'lucide-react';
@@ -14,20 +15,6 @@ interface Props {
     estimate: Estimate;
     shopPhone: string;
 }
-
-const statusVariants: Record<string, 'secondary' | 'default' | 'destructive' | 'outline'> = {
-    draft: 'secondary',
-    sent: 'default',
-    approved: 'outline',
-    invoiced: 'outline',
-};
-
-const statusLabels: Record<string, string> = {
-    draft: 'Draft',
-    sent: 'Sent',
-    approved: 'Approved',
-    invoiced: 'Invoiced',
-};
 
 export default function EstimatePublic({ estimate, shopPhone }: Props) {
     const [approving, setApproving] = useState(false);
@@ -54,8 +41,9 @@ export default function EstimatePublic({ estimate, shopPhone }: Props) {
                         <CheckCircle2 className="h-4 w-4" />
                         <AlertTitle>Already Approved</AlertTitle>
                         <AlertDescription>
-                            This estimate was approved on {new Date(estimate.approved_at!).toLocaleDateString()}. We will contact you soon to schedule
-                            the work.
+                            This estimate was approved
+                            {estimate.approved_at && ` on ${new Date(estimate.approved_at).toLocaleDateString()}`}. We will contact you soon to
+                            schedule the work.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -68,7 +56,7 @@ export default function EstimatePublic({ estimate, shopPhone }: Props) {
                             {estimate.unit && ` — ${estimate.unit.make} ${estimate.unit.model}`}
                         </p>
                     </div>
-                    <Badge variant={statusVariants[estimate.status] ?? 'secondary'}>{statusLabels[estimate.status] ?? estimate.status}</Badge>
+                    <Badge variant={STATUS_VARIANTS[estimate.status] ?? 'secondary'}>{STATUS_LABELS[estimate.status] ?? estimate.status}</Badge>
                 </div>
 
                 {estimate.notes && (
@@ -100,14 +88,12 @@ export default function EstimatePublic({ estimate, shopPhone }: Props) {
                                     {estimate.lines.map((line) => (
                                         <TableRow key={line.id}>
                                             <TableCell>
-                                                <span className="text-muted-foreground text-xs">
-                                                    {line.lineable_type.includes('Part') ? 'Part' : 'Service'}
-                                                </span>
+                                                <span className="text-muted-foreground text-xs">{formatLineType(line.lineable_type)}</span>
                                             </TableCell>
                                             <TableCell className="font-medium">{line.description}</TableCell>
                                             <TableCell className="text-right">{line.quantity}</TableCell>
-                                            <TableCell className="text-right">${Number(line.unit_price).toFixed(2)}</TableCell>
-                                            <TableCell className="text-right font-medium">${Number(line.line_total).toFixed(2)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(line.unit_price)}</TableCell>
+                                            <TableCell className="text-right font-medium">{formatCurrency(line.line_total)}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -127,24 +113,24 @@ export default function EstimatePublic({ estimate, shopPhone }: Props) {
                     <CardContent className="space-y-2">
                         <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Subtotal Parts</span>
-                            <span>${Number(estimate.subtotal_parts).toFixed(2)}</span>
+                            <span>{formatCurrency(estimate.subtotal_parts)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Subtotal Labor</span>
-                            <span>${Number(estimate.subtotal_labor).toFixed(2)}</span>
+                            <span>{formatCurrency(estimate.subtotal_labor)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Shop Supplies ({(Number(estimate.shop_supplies_rate) * 100).toFixed(0)}%)</span>
-                            <span>${Number(estimate.shop_supplies_amount).toFixed(2)}</span>
+                            <span>{formatCurrency(estimate.shop_supplies_amount)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Tax ({(Number(estimate.tax_rate) * 100).toFixed(2)}%)</span>
-                            <span>${Number(estimate.tax_amount).toFixed(2)}</span>
+                            <span>{formatCurrency(estimate.tax_amount)}</span>
                         </div>
                         <Separator />
                         <div className="flex justify-between text-lg font-semibold">
                             <span>Total</span>
-                            <span>${Number(estimate.total).toFixed(2)}</span>
+                            <span>{formatCurrency(estimate.total)}</span>
                         </div>
                     </CardContent>
                 </Card>
