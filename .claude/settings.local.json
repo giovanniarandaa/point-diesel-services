@@ -9,7 +9,10 @@
       "Bash(vendor/bin/pint:*)",
       "Bash(npm run build:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "WebSearch",
+      "Bash(npm run lint:*)",
+      "Bash(npm run format:check:*)"
     ]
   },
   "hooks": {
