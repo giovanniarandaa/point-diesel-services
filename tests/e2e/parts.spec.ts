@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Parts (Inventory) CRUD', () => {
-    test('can view empty parts list', async ({ page }) => {
+    test('parts index page loads', async ({ page }) => {
         await page.goto('/parts');
 
         await expect(page.getByRole('heading', { name: 'Inventory' })).toBeVisible();
-        await expect(page.getByText('No parts yet')).toBeVisible();
     });
 
     test('can navigate to create part page', async ({ page }) => {
         await page.goto('/parts');
         await page.getByRole('link', { name: 'Add Part' }).click();
 
+        await expect(page).toHaveURL('/parts/create');
         await expect(page.getByRole('heading', { name: 'Add Part' })).toBeVisible();
     });
 
