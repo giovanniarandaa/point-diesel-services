@@ -29,6 +29,14 @@ class Customer extends Model
         return $this->hasMany(Unit::class);
     }
 
+    /**
+     * @return HasMany<Estimate, $this>
+     */
+    public function estimates(): HasMany
+    {
+        return $this->hasMany(Estimate::class);
+    }
+
     protected static function booted(): void
     {
         static::deleting(function (Customer $customer): void {
