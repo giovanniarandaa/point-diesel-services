@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Part;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -45,6 +46,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'lowStockCount' => fn () => $request->user() ? Part::lowStock()->count() : 0,
         ]);
     }
 }
