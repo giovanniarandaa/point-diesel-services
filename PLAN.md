@@ -7,7 +7,7 @@ El proyecto está sobre **Laravel 12 + Inertia v2 + React 19 + TypeScript + Tail
 - Settings (profile, password, appearance)
 - Sidebar con navegación
 - **Módulo 1 completado**: Clientes + Unidades con CRUD, búsqueda, validaciones
-- 59 tests pasando (26 auth + 22 customers + 11 units)
+- 53 tests pasando (20 auth + 21 customers + 12 units)
 - Larastan level 8, Pint, TypeScript — todo limpio
 
 ---
@@ -226,7 +226,8 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 - shadcn/ui components (instalar nuevos según se necesiten)
 
 ### Testing
-- PHPUnit (no Pest) con `RefreshDatabase`
+- Pest PHP con `RefreshDatabase` (configurado en `tests/Pest.php`)
+- Sintaxis: `test('description', fn() => ...)` — NO clases PHPUnit
 - Feature tests para cada endpoint
 - Factories para crear datos de prueba
 - `php artisan test --compact --filter=testName`
