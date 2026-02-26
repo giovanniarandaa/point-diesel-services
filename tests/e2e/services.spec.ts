@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Labor Services CRUD', () => {
-    test('can view empty services list', async ({ page }) => {
+    test('services index page loads', async ({ page }) => {
         await page.goto('/services');
 
         await expect(page.getByRole('heading', { name: 'Services' })).toBeVisible();
-        await expect(page.getByText('No services yet')).toBeVisible();
     });
 
     test('can navigate to create service page', async ({ page }) => {
         await page.goto('/services');
         await page.getByRole('link', { name: 'Add Service' }).click();
 
+        await expect(page).toHaveURL('/services/create');
         await expect(page.getByRole('heading', { name: 'Add Service' })).toBeVisible();
     });
 

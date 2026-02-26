@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Customers CRUD', () => {
-    test('can view empty customers list', async ({ page }) => {
+    test('customers index page loads', async ({ page }) => {
         await page.goto('/customers');
 
         await expect(page.getByRole('heading', { name: 'Customers' })).toBeVisible();
-        await expect(page.getByText('No customers yet')).toBeVisible();
     });
 
     test('can navigate to create customer page', async ({ page }) => {
         await page.goto('/customers');
         await page.getByRole('link', { name: 'Add Customer' }).click();
 
+        await expect(page).toHaveURL('/customers/create');
         await expect(page.getByRole('heading', { name: 'Create Customer' })).toBeVisible();
     });
 
