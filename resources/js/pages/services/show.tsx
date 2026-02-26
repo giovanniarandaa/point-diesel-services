@@ -63,13 +63,12 @@ export default function ShowService({ service }: { service: LaborService }) {
                             <span className="text-muted-foreground">Default Price:</span>
                             <span className="font-medium">${Number(service.default_price).toFixed(2)}</span>
                         </div>
-                        {service.description && (
+                        {service.description ? (
                             <div className="space-y-1">
                                 <span className="text-muted-foreground text-sm">Description:</span>
                                 <p className="text-sm">{service.description}</p>
                             </div>
-                        )}
-                        {!service.description && (
+                        ) : (
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Description:</span>
                                 <span className="text-muted-foreground">--</span>

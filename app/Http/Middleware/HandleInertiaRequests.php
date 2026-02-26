@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        return array_merge(parent::share($request), [
+        return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim((string) $message), 'author' => trim((string) $author)],
@@ -47,6 +47,6 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'lowStockCount' => fn () => $request->user() ? Part::lowStock()->count() : 0,
-        ]);
+        ];
     }
 }
