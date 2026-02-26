@@ -7,6 +7,39 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property int $id
+ * @property int $estimate_id
+ * @property string $lineable_type
+ * @property int $lineable_id
+ * @property string $description
+ * @property int $quantity
+ * @property numeric $unit_price
+ * @property numeric $line_total
+ * @property int $sort_order
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Estimate $estimate
+ * @property-read \Illuminate\Database\Eloquent\Model $lineable
+ *
+ * @method static \Database\Factories\EstimateLineFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereEstimateId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereLineTotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereLineableId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereLineableType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereSortOrder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereUnitPrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EstimateLine whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
+ */
 class EstimateLine extends Model
 {
     /** @use HasFactory<\Database\Factories\EstimateLineFactory> */

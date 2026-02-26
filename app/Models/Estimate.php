@@ -10,6 +10,56 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $estimate_number
+ * @property int $customer_id
+ * @property int|null $unit_id
+ * @property EstimateStatus $status
+ * @property string|null $public_token
+ * @property numeric $subtotal_parts
+ * @property numeric $subtotal_labor
+ * @property numeric $shop_supplies_rate
+ * @property numeric $shop_supplies_amount
+ * @property numeric $tax_rate
+ * @property numeric $tax_amount
+ * @property numeric $total
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $approved_at
+ * @property string|null $approved_ip
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Customer $customer
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateLine> $lines
+ * @property-read int|null $lines_count
+ * @property-read \App\Models\Unit|null $unit
+ *
+ * @method static Builder<static>|Estimate byStatus(\App\Enums\EstimateStatus $status)
+ * @method static \Database\Factories\EstimateFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Estimate newModelQuery()
+ * @method static Builder<static>|Estimate newQuery()
+ * @method static Builder<static>|Estimate query()
+ * @method static Builder<static>|Estimate whereApprovedAt($value)
+ * @method static Builder<static>|Estimate whereApprovedIp($value)
+ * @method static Builder<static>|Estimate whereCreatedAt($value)
+ * @method static Builder<static>|Estimate whereCustomerId($value)
+ * @method static Builder<static>|Estimate whereEstimateNumber($value)
+ * @method static Builder<static>|Estimate whereId($value)
+ * @method static Builder<static>|Estimate whereNotes($value)
+ * @method static Builder<static>|Estimate wherePublicToken($value)
+ * @method static Builder<static>|Estimate whereShopSuppliesAmount($value)
+ * @method static Builder<static>|Estimate whereShopSuppliesRate($value)
+ * @method static Builder<static>|Estimate whereStatus($value)
+ * @method static Builder<static>|Estimate whereSubtotalLabor($value)
+ * @method static Builder<static>|Estimate whereSubtotalParts($value)
+ * @method static Builder<static>|Estimate whereTaxAmount($value)
+ * @method static Builder<static>|Estimate whereTaxRate($value)
+ * @method static Builder<static>|Estimate whereTotal($value)
+ * @method static Builder<static>|Estimate whereUnitId($value)
+ * @method static Builder<static>|Estimate whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
+ */
 class Estimate extends Model
 {
     /** @use HasFactory<\Database\Factories\EstimateFactory> */
@@ -105,6 +155,15 @@ class Estimate extends Model
         $this->update([
             'status' => EstimateStatus::Sent,
             'public_token' => Str::uuid()->toString(),
+        ]);
+    }
+
+    public function markAsApproved(string $ip): void
+    {
+        $this->update([
+            'status' => EstimateStatus::Approved,
+            'approved_at' => now(),
+            'approved_ip' => $ip,
         ]);
     }
 

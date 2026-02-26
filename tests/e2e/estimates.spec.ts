@@ -101,19 +101,24 @@ test.describe('Estimates CRUD', () => {
 
     test('can view estimate detail page with totals', async ({ page }) => {
         await page.goto('/estimates');
-        await page.getByText('EST-').first().click();
+        // Click the estimate number link in the row containing EstTest Motors Inc
+        const row = page.locator('tr', { hasText: 'EstTest Motors Inc' }).first();
+        await row.getByRole('link').first().click();
 
+        await expect(page).toHaveURL(/\/estimates\/\d+/);
         await expect(page.getByText('EstTest Motors Inc')).toBeVisible();
         await expect(page.getByText('Subtotal Parts')).toBeVisible();
         await expect(page.getByText('Subtotal Labor')).toBeVisible();
         await expect(page.getByText('Shop Supplies')).toBeVisible();
         await expect(page.getByText('Tax')).toBeVisible();
-        await expect(page.getByText('Draft')).toBeVisible();
+        await expect(page.getByText('Draft', { exact: true })).toBeVisible();
     });
 
     test('can edit a draft estimate', async ({ page }) => {
         await page.goto('/estimates');
-        await page.getByText('EST-').first().click();
+        const row = page.locator('tr', { hasText: 'EstTest Motors Inc' }).first();
+        await row.getByRole('link').first().click();
+        await expect(page).toHaveURL(/\/estimates\/\d+/);
         await page.getByRole('link', { name: 'Edit' }).click();
 
         await expect(page.getByRole('heading', { name: 'Edit Estimate' })).toBeVisible();
@@ -127,7 +132,9 @@ test.describe('Estimates CRUD', () => {
 
     test('can send a draft estimate', async ({ page }) => {
         await page.goto('/estimates');
-        await page.getByText('EST-').first().click();
+        const row = page.locator('tr', { hasText: 'EstTest Motors Inc' }).first();
+        await row.getByRole('link').first().click();
+        await expect(page).toHaveURL(/\/estimates\/\d+/);
 
         page.on('dialog', (dialog) => dialog.accept());
         await page.getByRole('button', { name: 'Send' }).click();
