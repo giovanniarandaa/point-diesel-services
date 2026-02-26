@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-// Helper: create a customer via the UI
 async function createCustomer(page: import('@playwright/test').Page, name: string) {
     await page.goto('/customers/create');
     await page.getByLabel('Name').fill(name);
@@ -9,7 +8,6 @@ async function createCustomer(page: import('@playwright/test').Page, name: strin
     await expect(page).toHaveURL(/\/customers\/\d+/);
 }
 
-// Helper: create a part via the UI
 async function createPart(page: import('@playwright/test').Page, sku: string, name: string, price: string) {
     await page.goto('/parts/create');
     await page.getByLabel('SKU').fill(sku);
@@ -22,7 +20,6 @@ async function createPart(page: import('@playwright/test').Page, sku: string, na
     await expect(page).toHaveURL(/\/parts\/\d+/);
 }
 
-// Helper: create a service via the UI
 async function createService(page: import('@playwright/test').Page, name: string, price: string) {
     await page.goto('/services/create');
     await page.getByLabel('Name').fill(name);
@@ -31,7 +28,6 @@ async function createService(page: import('@playwright/test').Page, name: string
     await expect(page).toHaveURL(/\/services\/\d+/);
 }
 
-// Helper: create estimate prerequisites (customer + part) and create the estimate
 async function createEstimateWith(page: import('@playwright/test').Page, customerName: string, partSku: string, partName: string) {
     await createCustomer(page, customerName);
     await createPart(page, partSku, partName, '50.00');
@@ -69,25 +65,20 @@ test.describe('Estimates CRUD', () => {
 
         await page.goto('/estimates/create');
 
-        // Select customer
         await page.locator('#customer_id').click();
         await page.getByRole('option', { name: 'EstTest Motors Inc' }).click();
 
-        // Add part via catalog search
         await page.getByRole('button', { name: 'Add Item' }).click();
         await page.getByPlaceholder('Search parts or services...').fill('ET Oil Filter HD');
         await page.getByText('ET Oil Filter HD').click();
 
-        // Add service via catalog search
         await page.getByRole('button', { name: 'Add Item' }).click();
         await page.getByPlaceholder('Search parts or services...').fill('ET Oil Change Full');
         await page.getByText('ET Oil Change Full').click();
 
-        // Verify line items in table
         await expect(page.getByText('Part').first()).toBeVisible();
         await expect(page.getByText('Service').first()).toBeVisible();
 
-        // Submit
         await page.getByRole('button', { name: 'Create Estimate' }).click();
         await expect(page).toHaveURL(/\/estimates\/\d+/);
         await expect(page.getByRole('heading', { name: /EST-\d+/ })).toBeVisible();
@@ -101,19 +92,23 @@ test.describe('Estimates CRUD', () => {
 
     test('can view estimate detail page with totals', async ({ page }) => {
         await page.goto('/estimates');
-        await page.getByText('EST-').first().click();
+        const row = page.locator('tr', { hasText: 'EstTest Motors Inc' }).first();
+        await row.getByRole('link').first().click();
 
+        await expect(page).toHaveURL(/\/estimates\/\d+/);
         await expect(page.getByText('EstTest Motors Inc')).toBeVisible();
         await expect(page.getByText('Subtotal Parts')).toBeVisible();
         await expect(page.getByText('Subtotal Labor')).toBeVisible();
         await expect(page.getByText('Shop Supplies')).toBeVisible();
         await expect(page.getByText('Tax')).toBeVisible();
-        await expect(page.getByText('Draft')).toBeVisible();
+        await expect(page.getByText('Draft', { exact: true })).toBeVisible();
     });
 
     test('can edit a draft estimate', async ({ page }) => {
         await page.goto('/estimates');
-        await page.getByText('EST-').first().click();
+        const row = page.locator('tr', { hasText: 'EstTest Motors Inc' }).first();
+        await row.getByRole('link').first().click();
+        await expect(page).toHaveURL(/\/estimates\/\d+/);
         await page.getByRole('link', { name: 'Edit' }).click();
 
         await expect(page.getByRole('heading', { name: 'Edit Estimate' })).toBeVisible();
@@ -127,7 +122,9 @@ test.describe('Estimates CRUD', () => {
 
     test('can send a draft estimate', async ({ page }) => {
         await page.goto('/estimates');
-        await page.getByText('EST-').first().click();
+        const row = page.locator('tr', { hasText: 'EstTest Motors Inc' }).first();
+        await row.getByRole('link').first().click();
+        await expect(page).toHaveURL(/\/estimates\/\d+/);
 
         page.on('dialog', (dialog) => dialog.accept());
         await page.getByRole('button', { name: 'Send' }).click();
@@ -138,7 +135,6 @@ test.describe('Estimates CRUD', () => {
     });
 
     test('can search estimates by customer name', async ({ page }) => {
-        // Create another estimate with different customer
         await createEstimateWith(page, 'ET Beta Trucking LLC', 'ET-P002', 'ET Brake Pad HD');
 
         await page.goto('/estimates');
@@ -158,10 +154,8 @@ test.describe('Estimates CRUD', () => {
     });
 
     test('can delete a draft estimate', async ({ page }) => {
-        // Create a new estimate to delete
         await createEstimateWith(page, 'ET Delete Me Corp', 'ET-P003', 'ET Throwaway Part');
 
-        // Should be on the show page after creation
         page.on('dialog', (dialog) => dialog.accept());
         await page.getByRole('button', { name: 'Delete' }).click();
 

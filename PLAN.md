@@ -126,27 +126,42 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 4: Portal de Aprobación (Vista Cliente) `feat/client-portal`
-**Estado**: [ ] Pendiente
+**Estado**: [x] Completado
 
 #### Backend
-- [ ] Ruta pública `GET /estimate/{token}` — sin auth
-- [ ] Ruta pública `POST /estimate/{token}/approve` — sin auth
-- [ ] `PublicEstimateController` — show (vista pública), approve (con confirmación)
-- [ ] Registrar IP + timestamp en aprobación
-- [ ] Idempotencia: si ya está aprobado, mostrar mensaje sin duplicar
+- [x] Ruta pública `GET /estimate/{token}` — sin auth, con throttle (10 req/min)
+- [x] Ruta pública `POST /estimate/{token}/approve` — sin auth, con throttle
+- [x] `PublicEstimateController` — show (vista pública), approve (con confirmación)
+- [x] `ApproveEstimateAction` — lógica de aprobación con idempotencia
+- [x] `Estimate::markAsApproved($ip)` — método en modelo (mirrors markAsSent)
+- [x] Registrar IP + timestamp en aprobación
+- [x] Idempotencia: si ya está aprobado, mostrar banner sin duplicar
+- [x] Shop phone configurado vía `SHOP_PHONE` en .env → `config('app.shop_phone')`
 
 #### Frontend
-- [ ] Página `public/estimate.tsx` — Vista mobile-first del estimate
-- [ ] Layout público sin sidebar (auth no requerido)
-- [ ] Botón "Aprobar Presupuesto" con confirmación
-- [ ] Botones "Llamar" (tel:) y "WhatsApp" (wa.me/)
-- [ ] Estado visual: si ya aprobado, mostrar confirmación
+- [x] Página `estimate-public.tsx` — Vista mobile-first del estimate
+- [x] Layout `public-estimate-layout.tsx` — sin sidebar, con logo, header, footer
+- [x] Botón "Approve Estimate" con confirmación (solo visible en status sent)
+- [x] Botones "Call Shop" (tel:) y "WhatsApp" (wa.me/) con enlace directo
+- [x] Banner "Already Approved" cuando el estimate ya fue aprobado
+- [x] Flash messages (Sonner toast) en layout público
 
-#### Tests
-- [ ] Feature: Vista pública accesible sin auth
-- [ ] Feature: Aprobación con registro de IP/timestamp
-- [ ] Feature: Idempotencia de aprobación
-- [ ] Feature: Estimate no encontrado (404)
+#### Tests (13 backend + 4 E2E)
+- [x] Feature: Vista pública accesible sin auth (13 tests)
+- [x] Feature: Aprobación con registro de IP/timestamp
+- [x] Feature: Idempotencia de aprobación (approved e invoiced)
+- [x] Feature: Estimate no encontrado (404)
+- [x] Feature: Shop phone desde config
+- [x] Feature: Visibilidad de sent/approved/invoiced
+- [x] E2E: Crear, enviar, ver público, aprobar, verificar status (4 tests)
+
+#### Notas de implementación
+- Cero migraciones — los campos `public_token`, `approved_at`, `approved_ip` ya existían
+- Rate limiting `throttle:10,1` en rutas públicas para prevenir abuso
+- UUID v4 como token público (122 bits de entropía)
+- Layout público usa Sonner toast para flash messages (consistente con app principal)
+- E2E tests extraen public_token vía clipboard con `grantPermissions`
+- Fix de E2E preexistentes: selectores más específicos para evitar colisiones con parallel workers
 
 ---
 
