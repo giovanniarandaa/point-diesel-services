@@ -13,6 +13,11 @@ php artisan test                                          # All tests
 php artisan test tests/Feature/Auth/AuthenticationTest.php  # Single file
 php artisan test --filter 'users can authenticate'            # Single test
 
+# E2E Testing (Playwright)
+npm run test:e2e                   # Run e2e tests headless
+npm run test:e2e:ui                # Interactive UI mode
+npm run test:e2e:headed            # Run with visible browser
+
 # Code Quality
 composer format            # Fix PHP (Pint)
 composer format:test       # Check PHP (Pint, no write)
@@ -55,9 +60,12 @@ php artisan typescript:transform     # Generate TS types from PHP DTOs/Enums
 - **Generated types** output to `resources/types/generated.d.ts` via `php artisan typescript:transform`
 
 ### Testing
-- **Pest PHP** with `RefreshDatabase` trait on Feature tests
+- **Pest PHP** — functional syntax `test('description', fn() => ...)`, NOT PHPUnit classes
+- `tests/Pest.php` binds `TestCase` + `RefreshDatabase` for Feature tests — don't add traits in individual files
 - Tests use **SQLite :memory:** database (configured in `phpunit.xml`), not MySQL
 - Feature tests in `tests/Feature/`, unit tests in `tests/Unit/`
+- **E2E tests** in `tests/e2e/` — Playwright with TypeScript, auth state reused via `storageState`
+- E2E tests depend on `DatabaseSeeder` user (`test@example.com` / `password`)
 
 ## Conventions
 
