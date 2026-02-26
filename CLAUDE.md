@@ -11,7 +11,7 @@ composer dev
 # Testing
 php artisan test                                          # All tests
 php artisan test tests/Feature/Auth/AuthenticationTest.php  # Single file
-php artisan test --filter test_users_can_authenticate       # Single test
+php artisan test --filter 'users can authenticate'            # Single test
 
 # Code Quality
 composer format            # Fix PHP (Pint)
