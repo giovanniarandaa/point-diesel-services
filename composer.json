@@ -69,7 +69,18 @@
             "@php artisan ide-helper:models -N",
             "@php artisan ide-helper:meta"
         ],
-        "test": "php artisan test"
+        "test": "php artisan test",
+        "test:e2e": [
+            "Composer\\Config::disableProcessTimeout",
+            "cp .env .env.bak",
+            "cp .env.e2e .env",
+            "@php artisan key:generate --no-interaction --quiet",
+            "@php -r \"touch('database/e2e.sqlite');\"",
+            "@php artisan migrate:fresh --seed --no-interaction --quiet",
+            "npx playwright test",
+            "cp .env.bak .env",
+            "@php -r \"@unlink('.env.bak');\""
+        ]
     },
     "extra": {
         "laravel": {
