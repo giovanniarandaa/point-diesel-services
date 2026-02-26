@@ -72,14 +72,7 @@
         "test": "php artisan test",
         "test:e2e": [
             "Composer\\Config::disableProcessTimeout",
-            "cp .env .env.bak",
-            "cp .env.e2e .env",
-            "@php artisan key:generate --no-interaction --quiet",
-            "@php -r \"touch('database/e2e.sqlite');\"",
-            "@php artisan migrate:fresh --seed --no-interaction --quiet",
-            "npx playwright test",
-            "cp .env.bak .env",
-            "@php -r \"@unlink('.env.bak');\""
+            "bash -c 'cp .env .env.bak && trap \"cp .env.bak .env; rm -f .env.bak\" EXIT && cp .env.e2e .env && php artisan key:generate --no-interaction --quiet && touch database/e2e.sqlite && php artisan migrate:fresh --seed --no-interaction --quiet && npx playwright test'"
         ]
     },
     "extra": {

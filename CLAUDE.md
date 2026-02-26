@@ -14,7 +14,8 @@ php artisan test tests/Feature/Auth/AuthenticationTest.php  # Single file
 php artisan test --filter 'users can authenticate'            # Single test
 
 # E2E Testing (Playwright)
-npm run test:e2e                   # Run e2e tests headless
+composer test:e2e                  # Full run: fresh DB + all specs (use this)
+npm run test:e2e                   # Run e2e tests (requires DB already setup)
 npm run test:e2e:ui                # Interactive UI mode
 npm run test:e2e:headed            # Run with visible browser
 
@@ -69,6 +70,10 @@ php artisan typescript:transform     # Generate TS types from PHP DTOs/Enums
 - `config/inertia.php` uses `js/pages` (lowercase) — matches Laravel 12 starter kit directory structure
 - **E2E tests** in `tests/e2e/` — Playwright with TypeScript, auth state reused via `storageState`
 - E2E tests depend on `DatabaseSeeder` user (`test@example.com` / `password`)
+- Run E2E via `composer test:e2e` — swaps `.env` with `.env.e2e`, creates fresh SQLite DB, runs Playwright, restores `.env`
+- Playwright starts its own `php artisan serve` on port 8000 — independent of Valet
+- E2E data names should use unique prefixes per spec file to avoid collisions with parallel workers (e.g., `ET-` prefix for estimates)
+- Don't test "empty list" states in E2E — parallel workers cause data leaks between specs
 
 ## Conventions
 
