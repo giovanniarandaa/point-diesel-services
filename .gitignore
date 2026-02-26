@@ -31,3 +31,11 @@ _ide_helper_models.php
 
 # TypeScript generated types
 resources/js/types/generated.d.ts
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+tests/e2e/.auth/
+database/e2e.sqlite
