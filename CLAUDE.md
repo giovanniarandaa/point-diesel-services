@@ -70,10 +70,12 @@ php artisan typescript:transform     # Generate TS types from PHP DTOs/Enums
 - `config/inertia.php` uses `js/pages` (lowercase) — matches Laravel 12 starter kit directory structure
 - **E2E tests** in `tests/e2e/` — Playwright with TypeScript, auth state reused via `storageState`
 - E2E tests depend on `DatabaseSeeder` user (`test@example.com` / `password`)
-- Run E2E via `composer test:e2e` — swaps `.env` with `.env.e2e`, creates fresh SQLite DB, runs Playwright, restores `.env`
+- Run E2E via `composer test:e2e` — swaps `.env` with `.env.e2e`, creates fresh SQLite DB, runs Playwright, restores `.env` via `trap EXIT`
 - Playwright starts its own `php artisan serve` on port 8000 — independent of Valet
-- E2E data names should use unique prefixes per spec file to avoid collisions with parallel workers (e.g., `ET-` prefix for estimates)
+- E2E data names should use unique prefixes per spec file to avoid collisions with parallel workers (e.g., `ET-` for estimates)
 - Don't test "empty list" states in E2E — parallel workers cause data leaks between specs
+- Use `test.describe.configure({ mode: 'serial' })` for tests that depend on prior state (create → edit → send → delete)
+- Add `await expect(page).toHaveURL(...)` after navigation clicks before asserting content — prevents flaky failures
 
 ## Conventions
 
