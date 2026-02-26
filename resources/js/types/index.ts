@@ -27,6 +27,9 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     lowStockCount: number;
+    flash: {
+        success: string | null;
+    };
     [key: string]: unknown;
 }
 

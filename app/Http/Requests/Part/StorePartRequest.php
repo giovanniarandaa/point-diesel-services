@@ -20,8 +20,8 @@ class StorePartRequest extends FormRequest
             'sku' => ['required', 'string', 'max:50', 'unique:parts,sku'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'cost' => ['required', 'numeric', 'min:0', 'max:999999.99'],
-            'sale_price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'cost' => ['required', 'numeric', 'min:0', 'max:999999.99', 'decimal:0,2'],
+            'sale_price' => ['required', 'numeric', 'min:0', 'max:999999.99', 'decimal:0,2'],
             'stock' => ['required', 'integer', 'min:0'],
             'min_stock' => ['required', 'integer', 'min:0'],
         ];

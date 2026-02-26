@@ -47,6 +47,9 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'lowStockCount' => fn () => $request->user() ? Part::lowStock()->count() : 0,
+            'flash' => [
+                'success' => $request->session()->get('success'),
+            ],
         ];
     }
 }

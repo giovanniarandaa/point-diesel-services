@@ -47,7 +47,7 @@ class CustomerController extends Controller
     {
         $customer = Customer::create($request->validated());
 
-        return to_route('customers.show', $customer);
+        return to_route('customers.show', $customer)->with('success', 'Customer created successfully.');
     }
 
     public function show(Customer $customer): Response
@@ -71,13 +71,13 @@ class CustomerController extends Controller
     {
         $customer->update($request->validated());
 
-        return to_route('customers.show', $customer);
+        return to_route('customers.show', $customer)->with('success', 'Customer updated successfully.');
     }
 
     public function destroy(Customer $customer): RedirectResponse
     {
         $customer->delete();
 
-        return to_route('customers.index');
+        return to_route('customers.index')->with('success', 'Customer deleted successfully.');
     }
 }

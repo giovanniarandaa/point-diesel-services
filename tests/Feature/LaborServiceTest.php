@@ -2,9 +2,24 @@
 
 use App\Models\LaborService;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia;
 
 test('guests cannot access services', function () {
     $this->get(route('services.index'))->assertRedirect(route('login'));
+});
+
+test('guests cannot store services', function () {
+    $this->post(route('services.store'), [])->assertRedirect(route('login'));
+});
+
+test('guests cannot update services', function () {
+    $service = LaborService::factory()->create();
+    $this->patch(route('services.update', $service), [])->assertRedirect(route('login'));
+});
+
+test('guests cannot delete services', function () {
+    $service = LaborService::factory()->create();
+    $this->delete(route('services.destroy', $service))->assertRedirect(route('login'));
 });
 
 test('services index page is displayed', function () {
@@ -25,7 +40,13 @@ test('services can be searched by name', function () {
     LaborService::factory()->create(['name' => 'Oil Change']);
     LaborService::factory()->create(['name' => 'Brake Inspection']);
 
-    $this->actingAs($user)->get(route('services.index', ['search' => 'oil']))->assertOk();
+    $this->actingAs($user)
+        ->get(route('services.index', ['search' => 'oil']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('services/index')
+            ->has('services.data', 1)
+            ->where('services.data.0.name', 'Oil Change'));
 });
 
 test('services are paginated', function () {
@@ -140,4 +161,49 @@ test('service can be deleted', function () {
 
     $response->assertRedirect(route('services.index'));
     $this->assertDatabaseMissing('labor_services', ['id' => $service->id]);
+});
+
+test('update requires name', function () {
+    $user = User::factory()->create();
+    $service = LaborService::factory()->create();
+
+    $this->actingAs($user)->patch(route('services.update', $service), [
+        'name' => '',
+        'default_price' => '75.00',
+    ])->assertSessionHasErrors('name');
+});
+
+test('update requires default price', function () {
+    $user = User::factory()->create();
+    $service = LaborService::factory()->create();
+
+    $this->actingAs($user)->patch(route('services.update', $service), [
+        'name' => 'Oil Change',
+        'default_price' => '',
+    ])->assertSessionHasErrors('default_price');
+});
+
+test('default price rejects more than 2 decimal places', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('services.store'), [
+        'name' => 'Oil Change',
+        'default_price' => '75.999',
+    ])->assertSessionHasErrors('default_price');
+});
+
+test('store service returns flash success message', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('services.store'), [
+        'name' => 'Oil Change',
+        'default_price' => '75.00',
+    ])->assertSessionHas('success');
+});
+
+test('delete service returns flash success message', function () {
+    $user = User::factory()->create();
+    $service = LaborService::factory()->create();
+
+    $this->actingAs($user)->delete(route('services.destroy', $service))->assertSessionHas('success');
 });

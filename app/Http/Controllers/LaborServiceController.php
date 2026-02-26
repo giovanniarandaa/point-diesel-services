@@ -42,7 +42,7 @@ class LaborServiceController extends Controller
     {
         $service = LaborService::create($request->validated());
 
-        return to_route('services.show', $service);
+        return to_route('services.show', $service)->with('success', 'Service created successfully.');
     }
 
     public function show(LaborService $service): Response
@@ -63,13 +63,13 @@ class LaborServiceController extends Controller
     {
         $service->update($request->validated());
 
-        return to_route('services.show', $service);
+        return to_route('services.show', $service)->with('success', 'Service updated successfully.');
     }
 
     public function destroy(LaborService $service): RedirectResponse
     {
         $service->delete();
 
-        return to_route('services.index');
+        return to_route('services.index')->with('success', 'Service deleted successfully.');
     }
 }

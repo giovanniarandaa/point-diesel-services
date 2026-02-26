@@ -19,7 +19,7 @@ class StoreLaborServiceRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'default_price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'default_price' => ['required', 'numeric', 'min:0', 'max:999999.99', 'decimal:0,2'],
         ];
     }
 }

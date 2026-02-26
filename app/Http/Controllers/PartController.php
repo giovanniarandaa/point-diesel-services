@@ -50,7 +50,7 @@ class PartController extends Controller
     {
         $part = Part::create($request->validated());
 
-        return to_route('parts.show', $part);
+        return to_route('parts.show', $part)->with('success', 'Part created successfully.');
     }
 
     public function show(Part $part): Response
@@ -71,13 +71,13 @@ class PartController extends Controller
     {
         $part->update($request->validated());
 
-        return to_route('parts.show', $part);
+        return to_route('parts.show', $part)->with('success', 'Part updated successfully.');
     }
 
     public function destroy(Part $part): RedirectResponse
     {
         $part->delete();
 
-        return to_route('parts.index');
+        return to_route('parts.index')->with('success', 'Part deleted successfully.');
     }
 }
