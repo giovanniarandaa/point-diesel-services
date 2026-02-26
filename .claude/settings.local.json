@@ -14,7 +14,8 @@
       "Bash(npm run lint:*)",
       "Bash(npm run format:check:*)",
       "Bash(composer test:e2e:*)",
-      "Bash(vendor/bin/phpstan analyse:*)"
+      "Bash(vendor/bin/phpstan analyse:*)",
+      "Bash(npx playwright test:*)"
     ]
   },
   "hooks": {
