@@ -12,7 +12,8 @@
       "Bash(git commit:*)",
       "WebSearch",
       "Bash(npm run lint:*)",
-      "Bash(npm run format:check:*)"
+      "Bash(npm run format:check:*)",
+      "Bash(composer test:e2e:*)"
     ]
   },
   "hooks": {

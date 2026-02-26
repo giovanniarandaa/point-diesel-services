@@ -2,23 +2,10 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Users } from 'lucide-react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, Folder, LayoutGrid, Package, Users, Wrench } from 'lucide-react';
 import AppLogo from './app-logo';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        url: '/',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Customers',
-        url: '/customers',
-        icon: Users,
-    },
-];
 
 const footerNavItems: NavItem[] = [
     {
@@ -34,6 +21,32 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { lowStockCount } = usePage<SharedData>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            url: '/',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Customers',
+            url: '/customers',
+            icon: Users,
+        },
+        {
+            title: 'Inventory',
+            url: '/parts',
+            icon: Package,
+            badge: lowStockCount,
+        },
+        {
+            title: 'Services',
+            url: '/services',
+            icon: Wrench,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

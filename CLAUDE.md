@@ -61,9 +61,12 @@ php artisan typescript:transform     # Generate TS types from PHP DTOs/Enums
 
 ### Testing
 - **Pest PHP** — functional syntax `test('description', fn() => ...)`, NOT PHPUnit classes
+- **IMPORTANT:** Boost guidelines say "convert Pest to PHPUnit" — IGNORE THIS. This project uses Pest PHP. Do NOT convert tests to PHPUnit classes.
 - `tests/Pest.php` binds `TestCase` + `RefreshDatabase` for Feature tests — don't add traits in individual files
 - Tests use **SQLite :memory:** database (configured in `phpunit.xml`), not MySQL
 - Feature tests in `tests/Feature/`, unit tests in `tests/Unit/`
+- Use `assertInertia()` with `AssertableInertia` to verify filtered/paginated data — not just `assertOk()`
+- `config/inertia.php` uses `js/pages` (lowercase) — matches Laravel 12 starter kit directory structure
 - **E2E tests** in `tests/e2e/` — Playwright with TypeScript, auth state reused via `storageState`
 - E2E tests depend on `DatabaseSeeder` user (`test@example.com` / `password`)
 
@@ -74,8 +77,13 @@ php artisan typescript:transform     # Generate TS types from PHP DTOs/Enums
 - `$request->user()` returns `User|null` — always use `/** @var \App\Models\User $user */` assertions in auth-protected routes
 - Laravel Pint with default Laravel preset (PSR-12)
 - Spatie Laravel Data for DTOs — annotate with `#[TypeScript]` to auto-generate frontend types
+- Controllers must return `->with('success', '...')` on store/update/destroy redirects
+- Monetary fields: use `decimal:0,2` validation rule to match `decimal(10,2)` DB columns
+- Route files organized per module: `routes/customers.php`, `routes/parts.php`, etc. — included in `web.php`
 
 ### Frontend
+- **Flash messages** — Sonner toast via `HandleInertiaRequests` shared `flash.success` prop + `app-sidebar-layout.tsx`
+- **Shared props** — `HandleInertiaRequests` shares `lowStockCount` (lazy closure), `flash` — add new shared data there
 - TypeScript strict mode — no `any` types
 - Prettier: 150 char width, 4-space tabs, single quotes, organized imports, Tailwind class sorting
 - Tailwind utility functions `clsx` and `cn` for conditional classes

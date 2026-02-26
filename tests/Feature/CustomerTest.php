@@ -3,9 +3,24 @@
 use App\Models\Customer;
 use App\Models\Unit;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia;
 
 test('guests cannot access customers', function () {
     $this->get(route('customers.index'))->assertRedirect(route('login'));
+});
+
+test('guests cannot store customers', function () {
+    $this->post(route('customers.store'), [])->assertRedirect(route('login'));
+});
+
+test('guests cannot update customers', function () {
+    $customer = Customer::factory()->create();
+    $this->patch(route('customers.update', $customer), [])->assertRedirect(route('login'));
+});
+
+test('guests cannot delete customers', function () {
+    $customer = Customer::factory()->create();
+    $this->delete(route('customers.destroy', $customer))->assertRedirect(route('login'));
 });
 
 test('customers index page is displayed', function () {
@@ -26,23 +41,39 @@ test('customers can be searched by name', function () {
     Customer::factory()->create(['name' => 'Acme Diesel Corp']);
     Customer::factory()->create(['name' => 'Texas Trucking LLC']);
 
-    $this->actingAs($user)->get(route('customers.index', ['search' => 'acme']))->assertOk();
+    $this->actingAs($user)
+        ->get(route('customers.index', ['search' => 'acme']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('customers/index')
+            ->has('customers.data', 1)
+            ->where('customers.data.0.name', 'Acme Diesel Corp'));
 });
 
 test('customers can be searched by phone', function () {
     $user = User::factory()->create();
-    Customer::factory()->create(['phone' => '+12025551234']);
-    Customer::factory()->create(['phone' => '+13015559999']);
+    Customer::factory()->create(['name' => 'Phone Match', 'phone' => '+12025551234']);
+    Customer::factory()->create(['name' => 'No Match', 'phone' => '+13015559999']);
 
-    $this->actingAs($user)->get(route('customers.index', ['search' => '2025551234']))->assertOk();
+    $this->actingAs($user)
+        ->get(route('customers.index', ['search' => '2025551234']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('customers.data', 1)
+            ->where('customers.data.0.name', 'Phone Match'));
 });
 
 test('customers can be searched by email', function () {
     $user = User::factory()->create();
-    Customer::factory()->create(['email' => 'john@acmediesel.com']);
-    Customer::factory()->create(['email' => 'jane@texastrucking.com']);
+    Customer::factory()->create(['name' => 'Email Match', 'email' => 'john@acmediesel.com']);
+    Customer::factory()->create(['name' => 'No Match', 'email' => 'jane@texastrucking.com']);
 
-    $this->actingAs($user)->get(route('customers.index', ['search' => 'acmediesel']))->assertOk();
+    $this->actingAs($user)
+        ->get(route('customers.index', ['search' => 'acmediesel']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('customers.data', 1)
+            ->where('customers.data.0.name', 'Email Match'));
 });
 
 test('customers are paginated', function () {
@@ -204,4 +235,20 @@ test('soft deleting customer deletes units', function () {
 
     $this->assertSoftDeleted('customers', ['id' => $customer->id]);
     $this->assertDatabaseMissing('units', ['id' => $unit->id]);
+});
+
+test('store customer returns flash success message', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('customers.store'), [
+        'name' => 'Flash Test Customer',
+        'phone' => '+12345678900',
+    ])->assertSessionHas('success');
+});
+
+test('delete customer returns flash success message', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
+
+    $this->actingAs($user)->delete(route('customers.destroy', $customer))->assertSessionHas('success');
 });

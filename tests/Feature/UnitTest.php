@@ -173,16 +173,44 @@ test('unit can be deleted', function () {
     $this->assertDatabaseMissing('units', ['id' => $unit->id]);
 });
 
-test('guests cannot manage units', function () {
+test('guests cannot store units', function () {
     $customer = Customer::factory()->create();
 
-    $response = $this->post(route('units.store'), [
+    $this->post(route('units.store'), [
         'customer_id' => $customer->id,
         'vin' => 'ABCDEFGH123456789',
         'make' => 'Freightliner',
         'model' => 'Cascadia',
         'mileage' => 50000,
-    ]);
+    ])->assertRedirect(route('login'));
+});
 
-    $response->assertRedirect(route('login'));
+test('guests cannot update units', function () {
+    $unit = Unit::factory()->create();
+    $this->patch(route('units.update', $unit), [])->assertRedirect(route('login'));
+});
+
+test('guests cannot delete units', function () {
+    $unit = Unit::factory()->create();
+    $this->delete(route('units.destroy', $unit))->assertRedirect(route('login'));
+});
+
+test('store unit returns flash success message', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
+
+    $this->actingAs($user)->post(route('units.store'), [
+        'customer_id' => $customer->id,
+        'vin' => 'ABCDEFGH123456789',
+        'make' => 'Freightliner',
+        'model' => 'Cascadia',
+        'mileage' => 50000,
+    ])->assertSessionHas('success');
+});
+
+test('delete unit returns flash success message', function () {
+    $user = User::factory()->create();
+    $unit = Unit::factory()->create();
+
+    $this->actingAs($user)->delete(route('units.destroy', $unit))->assertSessionHas('success');
 });

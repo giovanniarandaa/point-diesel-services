@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Part;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -38,13 +39,17 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        return array_merge(parent::share($request), [
+        return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim((string) $message), 'author' => trim((string) $author)],
             'auth' => [
                 'user' => $request->user(),
             ],
-        ]);
+            'lowStockCount' => fn () => $request->user() ? Part::lowStock()->count() : 0,
+            'flash' => [
+                'success' => $request->session()->get('success'),
+            ],
+        ];
     }
 }

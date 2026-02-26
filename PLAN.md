@@ -7,8 +7,10 @@ El proyecto está sobre **Laravel 12 + Inertia v2 + React 19 + TypeScript + Tail
 - Settings (profile, password, appearance)
 - Sidebar con navegación
 - **Módulo 1 completado**: Clientes + Unidades con CRUD, búsqueda, validaciones
-- 53 tests pasando (20 auth + 21 customers + 12 units)
-- Larastan level 8, Pint, TypeScript — todo limpio
+- **Módulo 2 completado**: Inventario (Parts) + Catálogo de Servicios (LaborServices) con CRUD, búsqueda, filtro stock bajo, badge sidebar
+- 89 backend tests pasando (20 auth + 21 customers + 12 units + 22 parts + 14 services)
+- 42 E2E tests pasando (3 auth + 2 nav + 11 customers + 7 units + 11 parts + 8 services)
+- Larastan level 8, Pint, ESLint, Prettier, TypeScript — todo limpio
 
 ---
 
@@ -56,29 +58,39 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 2: Inventario + Catálogo de Servicios `feat/inventory-catalog`
-**Estado**: [ ] Pendiente
+**Estado**: [x] Completado
 
 #### Backend
-- [ ] Migración `create_parts_table`: sku (unique), name, description, cost, sale_price, stock, min_stock, timestamps
-- [ ] Migración `create_labor_services_table`: name, description, default_price, timestamps
-- [ ] Modelos `Part` y `LaborService` con factories y seeders
-- [ ] DTOs: `PartData`, `LaborServiceData` con `#[TypeScript]`
-- [ ] Form Requests para CRUD de ambos
-- [ ] `PartController` — CRUD con búsqueda y filtros
-- [ ] `LaborServiceController` — CRUD con búsqueda
-- [ ] Scope/query para stock bajo: `stock <= min_stock`
+- [x] Migración `create_parts_table`: sku (unique), name, description, cost, sale_price, stock, min_stock, timestamps
+- [x] Migración `create_labor_services_table`: name, description, default_price, timestamps
+- [x] Modelos `Part` y `LaborService` con factories y seeders
+- [ ] DTOs: `PartData`, `LaborServiceData` con `#[TypeScript]` (diferido — se usarán inline types por ahora)
+- [x] Form Requests para CRUD de ambos
+- [x] `PartController` — CRUD con búsqueda y filtros
+- [x] `LaborServiceController` — CRUD con búsqueda
+- [x] Scope/query para stock bajo: `stock <= min_stock`
 
 #### Frontend
-- [ ] Página `inventory/index.tsx` — Lista de refacciones con badge stock bajo
-- [ ] Páginas CRUD para refacciones
-- [ ] Página `services/index.tsx` — Lista de servicios de mano de obra
-- [ ] Páginas CRUD para servicios
-- [ ] Badge de alerta en sidebar cuando hay items con stock bajo
-- [ ] Navegación sidebar: "Inventory" y "Services"
+- [x] Página `parts/index.tsx` — Lista de refacciones con badge stock bajo + botones editar/eliminar
+- [x] Páginas CRUD para refacciones (create, show, edit)
+- [x] Página `services/index.tsx` — Lista de servicios de mano de obra + botones editar/eliminar
+- [x] Páginas CRUD para servicios (create, show, edit)
+- [x] Badge de alerta en sidebar cuando hay items con stock bajo
+- [x] Navegación sidebar: "Inventory" y "Services"
+- [x] Botones editar/eliminar en tabla de Customers (mejora retroactiva)
 
-#### Tests
-- [ ] Feature: PartController CRUD, búsqueda, SKU unique, stock bajo
-- [ ] Feature: LaborServiceController CRUD
+#### Tests (36 backend + 19 E2E)
+- [x] Feature: PartController CRUD, búsqueda, SKU unique, stock bajo (22 tests)
+- [x] Feature: LaborServiceController CRUD (14 tests)
+- [x] E2E: Parts CRUD, búsqueda, stock bajo, editar, eliminar (11 tests)
+- [x] E2E: Services CRUD, búsqueda, editar, eliminar (8 tests)
+
+#### Notas de implementación
+- DTOs diferidos — se implementarán con Módulo 3+ (mismo enfoque que Módulo 1)
+- Low stock count compartido vía `HandleInertiaRequests` middleware (lazy closure)
+- `scopeLowStock` usa `whereColumn('stock', '<=', 'min_stock')` para comparar columnas
+- SKU auto-uppercase vía `prepareForValidation()` en Form Requests
+- Rutas organizadas en archivos separados: `routes/parts.php`, `routes/services.php`
 
 ---
 
