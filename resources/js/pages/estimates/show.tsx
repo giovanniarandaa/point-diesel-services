@@ -5,9 +5,9 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency, formatLineType, STATUS_LABELS, STATUS_VARIANTS } from '@/lib/estimate-helpers';
-import { type BreadcrumbItem, type Estimate } from '@/types';
+import { type BreadcrumbItem, type Estimate, type StockWarning } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Copy, Edit, Send, Trash2 } from 'lucide-react';
+import { AlertTriangle, Copy, Edit, FileText, Receipt, Send, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface Props {
@@ -17,7 +17,9 @@ interface Props {
 export default function ShowEstimate({ estimate }: Props) {
     const [deleting, setDeleting] = useState(false);
     const [sending, setSending] = useState(false);
+    const [converting, setConverting] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [stockWarnings, setStockWarnings] = useState<StockWarning[] | null>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Estimates', href: '/estimates' },
@@ -55,6 +57,48 @@ export default function ShowEstimate({ estimate }: Props) {
         }
     };
 
+    const handleConvertToInvoice = async () => {
+        try {
+            const response = await fetch(route('api.stock-warnings', estimate.id));
+            const warnings: StockWarning[] = await response.json();
+
+            if (warnings.length > 0) {
+                setStockWarnings(warnings);
+                return;
+            }
+
+            confirmConversion();
+        } catch {
+            confirmConversion();
+        }
+    };
+
+    const confirmConversion = () => {
+        if (confirm('Convert this estimate to an invoice? This will deduct parts from inventory and cannot be undone.')) {
+            setConverting(true);
+            setStockWarnings(null);
+            router.post(
+                route('invoices.store', estimate.id),
+                {},
+                {
+                    onFinish: () => setConverting(false),
+                },
+            );
+        }
+    };
+
+    const handleForceConversion = () => {
+        setConverting(true);
+        setStockWarnings(null);
+        router.post(
+            route('invoices.store', estimate.id),
+            {},
+            {
+                onFinish: () => setConverting(false),
+            },
+        );
+    };
+
     const canEdit = estimate.status === 'draft' || estimate.status === 'sent';
 
     return (
@@ -86,6 +130,20 @@ export default function ShowEstimate({ estimate }: Props) {
                                 {copied ? 'Copied!' : 'Copy Link'}
                             </Button>
                         )}
+                        {estimate.status === 'approved' && !estimate.invoice && (
+                            <Button variant="default" size="sm" onClick={handleConvertToInvoice} disabled={converting}>
+                                <Receipt className="mr-2 h-4 w-4" />
+                                {converting ? 'Converting...' : 'Convert to Invoice'}
+                            </Button>
+                        )}
+                        {estimate.invoice && (
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href={route('invoices.show', estimate.invoice.id)}>
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    View Invoice
+                                </Link>
+                            </Button>
+                        )}
                         {canEdit && (
                             <Button variant="outline" size="sm" asChild>
                                 <Link href={route('estimates.edit', estimate.id)}>
@@ -102,6 +160,37 @@ export default function ShowEstimate({ estimate }: Props) {
                         )}
                     </div>
                 </div>
+
+                {stockWarnings && stockWarnings.length > 0 && (
+                    <Card className="border-yellow-300 bg-yellow-50 dark:border-yellow-700 dark:bg-yellow-950">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+                                <AlertTriangle className="h-5 w-5" />
+                                Insufficient Stock Warning
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                                The following parts have insufficient stock. Converting will result in negative inventory:
+                            </p>
+                            <ul className="space-y-1 text-sm">
+                                {stockWarnings.map((w) => (
+                                    <li key={w.part_id} className="text-yellow-800 dark:text-yellow-200">
+                                        <span className="font-medium">{w.name}</span> ({w.sku}) — Need {w.requested}, have {w.available}
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="flex gap-2 pt-2">
+                                <Button size="sm" variant="outline" onClick={handleForceConversion} disabled={converting}>
+                                    {converting ? 'Converting...' : 'Convert Anyway'}
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => setStockWarnings(null)}>
+                                    Cancel
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {estimate.notes && (
                     <Card>

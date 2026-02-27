@@ -174,28 +174,42 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 5: Notificaciones y Facturación `feat/invoicing`
-**Estado**: [ ] Pendiente
+**Estado**: [x] Completado (MVP — sin notificaciones externas)
 
 #### Backend
-- [ ] Migración `create_invoices_table`: estimate_id, invoice_number (INV-0001), issued_at, subtotal_parts, subtotal_labor, shop_supplies_amount, tax_amount, total, timestamps
-- [ ] Modelo `Invoice` con numeración secuencial
-- [ ] Action `ConvertEstimateToInvoiceAction` — crea invoice, descuenta inventario
-- [ ] Action `NotifyVehicleReadyAction` — envía WhatsApp (Twilio) + Email (Resend)
-- [ ] Generación de PDF con barryvdh/laravel-dompdf
-- [ ] Warning visual si stock insuficiente (permite negativo)
+- [x] Migración `create_invoices_table`: estimate_id (unique FK), invoice_number (INV-0001), issued_at, totales copiados del estimate, timestamps
+- [x] Modelo `Invoice` con numeración secuencial (`generateInvoiceNumber()` con lockForUpdate)
+- [x] Action `ConvertEstimateToInvoiceAction` — crea invoice, descuenta inventario, marca estimate como invoiced (transacción)
+- [x] Action `DeductInventoryAction` — recorre líneas de tipo Part y decrementa stock, retorna warnings
+- [x] Generación de PDF con barryvdh/laravel-dompdf — template Blade funcional
+- [x] Warning visual si stock insuficiente (permite negativo con confirmación)
+- [x] API endpoint `stock-warnings` para verificar stock antes de convertir
+- [ ] Action `NotifyVehicleReadyAction` — envía WhatsApp (Twilio) + Email (Resend) *(diferido — requiere cuentas externas)*
 
 #### Frontend
-- [ ] Botón "Vehicle Ready" en estimate aprobado
-- [ ] Botón "Convert to Invoice" en estimate aprobado
-- [ ] Página `invoices/show.tsx` — Detalle del invoice
-- [ ] Descarga de PDF
+- [x] Botón "Convert to Invoice" en estimate aprobado (con verificación de stock previa)
+- [x] Warning card con stock insuficiente y opción "Convert Anyway"
+- [x] Botón "View Invoice" en estimate convertido (link al invoice)
+- [x] Página `invoices/show.tsx` — Detalle del invoice con datos del estimate
+- [x] Descarga de PDF desde la página del invoice
+- [ ] Botón "Vehicle Ready" *(diferido — requiere Twilio/Resend)*
 
-#### Tests
-- [ ] Feature: Conversión estimate → invoice
-- [ ] Feature: Numeración secuencial INV-0001
-- [ ] Feature: Descuento de inventario
-- [ ] Feature: Warning de stock negativo
-- [ ] Feature: Generación de PDF
+#### Tests (17 backend)
+- [x] Feature: Guest protection (4 tests: store, show, pdf, stock-warnings)
+- [x] Feature: Conversión estimate → invoice (approved, deducción stock, stock negativo)
+- [x] Feature: Guards (draft/sent no pueden convertirse, no doble conversión)
+- [x] Feature: Numeración secuencial INV-0001
+- [x] Feature: Show invoice con relaciones
+- [x] Feature: Generación de PDF
+- [x] Feature: Stock warnings API (insuficiente, suficiente, ignora labor services)
+
+#### Notas de implementación
+- Invoice copia totales del estimate (snapshot, no recalcula)
+- Un estimate = un invoice (1:1, `estimate_id` unique constraint)
+- Stock se descuenta al facturar, no al aprobar (flexibilidad operacional)
+- barryvdh/laravel-dompdf v3.1 con template Blade básico
+- Notificaciones externas (Twilio, Resend) diferidas hasta tener las cuentas configuradas
+- 189 backend tests pasando (172 existentes + 17 nuevos)
 
 ---
 

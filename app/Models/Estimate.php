@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 /**
@@ -33,6 +34,7 @@ use Illuminate\Support\Str;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateLine> $lines
  * @property-read int|null $lines_count
  * @property-read \App\Models\Unit|null $unit
+ * @property-read \App\Models\Invoice|null $invoice
  *
  * @method static Builder<static>|Estimate byStatus(\App\Enums\EstimateStatus $status)
  * @method static \Database\Factories\EstimateFactory factory($count = null, $state = [])
@@ -135,6 +137,14 @@ class Estimate extends Model
         return $this->hasMany(EstimateLine::class)->orderBy('sort_order');
     }
 
+    /**
+     * @return HasOne<Invoice, $this>
+     */
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
+    }
+
     public static function generateEstimateNumber(): string
     {
         $last = self::query()
@@ -171,6 +181,13 @@ class Estimate extends Model
             'status' => EstimateStatus::Approved,
             'approved_at' => now(),
             'approved_ip' => $ip,
+        ]);
+    }
+
+    public function markAsInvoiced(): void
+    {
+        $this->update([
+            'status' => EstimateStatus::Invoiced,
         ]);
     }
 
