@@ -223,12 +223,36 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 6: Dashboard `feat/dashboard`
-**Estado**: [ ] Pendiente
+**Estado**: [x] Completado
 
-- [ ] Vista tipo "lista de trabajo" con estimates recientes
-- [ ] Badges de color por estado de estimate
-- [ ] Badge de stock bajo en menú de inventario
-- [ ] Lista de items con stock bajo
+#### Backend
+- [x] `DashboardController` (invokable) — stats, estimates recientes, low stock parts
+- [x] Stats: total estimates, active estimates (sent+approved), invoices del mes, revenue del mes
+- [x] Recent estimates: 10 más recientes con customer y unit eager-loaded
+- [x] Low stock parts: todos los items con `stock <= min_stock`, ordenados por criticidad
+- [x] Ruta actualizada en `web.php` usando controller en vez de closure
+
+#### Frontend
+- [x] 4 Stats Cards: Total Estimates, Active Estimates, Invoices This Month, Revenue This Month
+- [x] Vista tipo "lista de trabajo" con estimates recientes (tabla con links clickeables)
+- [x] Badges de color por estado de estimate (draft, sent, approved, invoiced)
+- [x] Badge de stock bajo en menú de inventario (ya existía desde Módulo 2)
+- [x] Lista de items con stock bajo (scrollable, stock actual vs mínimo, icono alerta)
+- [x] Links a "View all" estimates y "View inventory" filtrado por low stock
+
+#### Tests (11 backend)
+- [x] Feature: Guest redirect
+- [x] Feature: Stats correctos (conteos por status, invoices del mes, revenue)
+- [x] Feature: Recent estimates con relaciones, límite 10, orden descendente
+- [x] Feature: Low stock filtrado y ordenado por criticidad
+- [x] Feature: Empty state (sin datos)
+
+#### Notas de implementación
+- Controller invokable sin Actions/Services (solo lectura de datos)
+- Stats usa `selectRaw` con `groupBy` para un solo query de conteos por status
+- Revenue formateada con `number_format` para evitar pérdida de precisión
+- Low stock ordenado por `(stock - min_stock) asc` para mostrar los más críticos primero
+- 202 backend tests pasando (193 existentes + 9 nuevos)
 
 ---
 
