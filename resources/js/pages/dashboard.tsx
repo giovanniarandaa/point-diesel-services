@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency, STATUS_LABELS, STATUS_VARIANTS } from '@/lib/estimate-helpers';
 import { type BreadcrumbItem, type DashboardStats, type Estimate, type LowStockPart } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle, Clock, DollarSign, FileText, Receipt } from 'lucide-react';
@@ -11,20 +12,6 @@ interface Props {
     recentEstimates: Estimate[];
     lowStockParts: LowStockPart[];
 }
-
-const statusVariants: Record<string, 'secondary' | 'default' | 'destructive' | 'outline'> = {
-    draft: 'secondary',
-    sent: 'default',
-    approved: 'outline',
-    invoiced: 'outline',
-};
-
-const statusLabels: Record<string, string> = {
-    draft: 'Draft',
-    sent: 'Sent',
-    approved: 'Approved',
-    invoiced: 'Invoiced',
-};
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/' }];
 
@@ -39,7 +26,6 @@ export default function Dashboard({ stats, recentEstimates, lowStockParts }: Pro
                     <p className="text-muted-foreground text-sm">Overview of your shop operations</p>
                 </div>
 
-                {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -77,16 +63,12 @@ export default function Dashboard({ stats, recentEstimates, lowStockParts }: Pro
                             <DollarSign className="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">
-                                ${Number(stats.revenueThisMonth).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                            </div>
+                            <div className="text-2xl font-bold">{formatCurrency(stats.revenueThisMonth)}</div>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Two-column layout: Recent Estimates + Low Stock */}
                 <div className="grid gap-6 lg:grid-cols-3">
-                    {/* Recent Estimates */}
                     <div className="lg:col-span-2">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between">
@@ -123,11 +105,11 @@ export default function Dashboard({ stats, recentEstimates, lowStockParts }: Pro
                                                         </TableCell>
                                                         <TableCell>{estimate.customer?.name}</TableCell>
                                                         <TableCell>
-                                                            <Badge variant={statusVariants[estimate.status] ?? 'secondary'}>
-                                                                {statusLabels[estimate.status] ?? estimate.status}
+                                                            <Badge variant={STATUS_VARIANTS[estimate.status] ?? 'secondary'}>
+                                                                {STATUS_LABELS[estimate.status] ?? estimate.status}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell className="text-right font-medium">${Number(estimate.total).toFixed(2)}</TableCell>
+                                                        <TableCell className="text-right font-medium">{formatCurrency(estimate.total)}</TableCell>
                                                         <TableCell className="text-muted-foreground text-right text-sm">
                                                             {new Date(estimate.created_at).toLocaleDateString()}
                                                         </TableCell>
@@ -141,7 +123,6 @@ export default function Dashboard({ stats, recentEstimates, lowStockParts }: Pro
                         </Card>
                     </div>
 
-                    {/* Low Stock Items */}
                     <div>
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between">

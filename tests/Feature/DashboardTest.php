@@ -22,14 +22,15 @@ test('dashboard returns stats with correct estimate counts', function () {
     Estimate::factory()->count(2)->create(); // 2 drafts
     Estimate::factory()->sent()->create(); // 1 sent
     Estimate::factory()->approved()->create(); // 1 approved
+    Estimate::factory()->invoiced()->create(); // 1 invoiced (should NOT count as active)
 
     $this->actingAs($user)
         ->get('/')
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('dashboard')
-            ->where('stats.totalEstimates', 4)
-            ->where('stats.activeEstimates', 2) // sent + approved
+            ->where('stats.totalEstimates', 5)
+            ->where('stats.activeEstimates', 2) // only sent + approved
         );
 });
 

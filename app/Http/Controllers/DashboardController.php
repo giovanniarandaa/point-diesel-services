@@ -18,15 +18,12 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('count', 'status');
 
-        $monthStart = now()->startOfMonth();
-
-        $invoicesThisMonth = Invoice::query()
-            ->where('issued_at', '>=', $monthStart)
-            ->count();
-
-        $revenueThisMonth = Invoice::query()
-            ->where('issued_at', '>=', $monthStart)
-            ->sum('total');
+        /** @var object{count: int, revenue: numeric-string} $monthlyInvoiceStats */
+        $monthlyInvoiceStats = Invoice::query()
+            ->where('issued_at', '>=', now()->startOfMonth())
+            ->toBase()
+            ->selectRaw('count(*) as count, coalesce(sum(total), 0) as revenue')
+            ->first();
 
         $recentEstimates = Estimate::query()
             ->with('customer', 'unit')
@@ -38,12 +35,15 @@ class DashboardController extends Controller
             ->orderByRaw('(stock - min_stock) asc')
             ->get(['id', 'sku', 'name', 'stock', 'min_stock']);
 
+        $activeEstimates = ($estimateCounts[EstimateStatus::Sent->value] ?? 0)
+            + ($estimateCounts[EstimateStatus::Approved->value] ?? 0);
+
         return Inertia::render('dashboard', [
             'stats' => [
-                'totalEstimates' => Estimate::count(),
-                'activeEstimates' => ($estimateCounts[EstimateStatus::Sent->value] ?? 0) + ($estimateCounts[EstimateStatus::Approved->value] ?? 0),
-                'invoicesThisMonth' => $invoicesThisMonth,
-                'revenueThisMonth' => number_format((float) $revenueThisMonth, 2, '.', ''),
+                'totalEstimates' => (int) $estimateCounts->sum(),
+                'activeEstimates' => $activeEstimates,
+                'invoicesThisMonth' => (int) $monthlyInvoiceStats->count,
+                'revenueThisMonth' => number_format((float) $monthlyInvoiceStats->revenue, 2, '.', ''),
             ],
             'recentEstimates' => $recentEstimates,
             'lowStockParts' => $lowStockParts,
