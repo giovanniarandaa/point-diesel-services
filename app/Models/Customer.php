@@ -68,6 +68,11 @@ class Customer extends Model
         return $this->hasMany(Estimate::class);
     }
 
+    public function routeNotificationForTwilioWhatsapp(mixed $notification): ?string
+    {
+        return $this->phone;
+    }
+
     protected static function booted(): void
     {
         static::deleting(function (Customer $customer): void {

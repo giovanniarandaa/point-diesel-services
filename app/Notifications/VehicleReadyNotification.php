@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Channels\TwilioWhatsAppChannel;
 use App\Models\Invoice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -24,10 +25,9 @@ class VehicleReadyNotification extends Notification
             $channels[] = 'mail';
         }
 
-        // TODO: Add WhatsApp channel when Twilio is configured
-        // if (config('services.twilio.sid')) {
-        //     $channels[] = TwilioWhatsAppChannel::class;
-        // }
+        if (config('services.twilio.sid')) {
+            $channels[] = TwilioWhatsAppChannel::class;
+        }
 
         return $channels;
     }
@@ -50,6 +50,21 @@ class VehicleReadyNotification extends Notification
             ->salutation("Thank you for choosing {$shopName}!");
     }
 
+    public function toTwilioWhatsApp(object $notifiable): string
+    {
+        $estimate = $this->invoice->estimate;
+        $shopName = config('app.name');
+        $unit = $estimate->unit;
+        $vehicleInfo = $unit ? "{$unit->make} {$unit->model}" : 'your vehicle';
+
+        return "Hello {$estimate->customer->name}! "
+            ."Great news — the work on {$vehicleInfo} has been completed. "
+            ."Invoice: {$this->invoice->invoice_number}. "
+            .'Total: $'.number_format((float) $this->invoice->total, 2).'. '
+            .'Please contact us to arrange pickup. '
+            ."— {$shopName}";
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -60,20 +75,4 @@ class VehicleReadyNotification extends Notification
             'invoice_number' => $this->invoice->invoice_number,
         ];
     }
-
-    // TODO: Uncomment and implement when Twilio is configured
-    // public function toTwilioWhatsApp(object $notifiable): string
-    // {
-    //     $estimate = $this->invoice->estimate;
-    //     $shopName = config('app.name');
-    //     $unit = $estimate->unit;
-    //     $vehicleInfo = $unit ? "{$unit->make} {$unit->model}" : 'your vehicle';
-    //
-    //     return "Hello {$estimate->customer->name}! "
-    //         . "Great news — the work on {$vehicleInfo} has been completed. "
-    //         . "Invoice: {$this->invoice->invoice_number}. "
-    //         . "Total: $" . number_format((float) $this->invoice->total, 2) . ". "
-    //         . "Please contact us to arrange pickup. "
-    //         . "— {$shopName}";
-    // }
 }
