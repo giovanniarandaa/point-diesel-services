@@ -86,7 +86,7 @@ class EstimateController extends Controller
 
     public function show(Estimate $estimate): Response
     {
-        $estimate->load('customer', 'unit', 'lines');
+        $estimate->load('customer', 'unit', 'lines', 'invoice');
 
         return Inertia::render('estimates/show', [
             'estimate' => $estimate,

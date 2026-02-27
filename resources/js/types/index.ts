@@ -82,6 +82,7 @@ export interface Estimate {
     customer?: Customer;
     unit?: Unit;
     lines?: EstimateLine[];
+    invoice?: Invoice;
 }
 
 export interface EstimateLine {
@@ -94,6 +95,32 @@ export interface EstimateLine {
     unit_price: string;
     line_total: string;
     sort_order: number;
+}
+
+export interface Invoice {
+    id: number;
+    invoice_number: string;
+    estimate_id: number;
+    issued_at: string;
+    subtotal_parts: string;
+    subtotal_labor: string;
+    shop_supplies_rate: string;
+    shop_supplies_amount: string;
+    tax_rate: string;
+    tax_amount: string;
+    total: string;
+    notified_at: string | null;
+    created_at: string;
+    updated_at: string;
+    estimate?: Estimate;
+}
+
+export interface StockWarning {
+    part_id: number;
+    name: string;
+    sku: string;
+    requested: number;
+    available: number;
 }
 
 export interface CatalogItem {

@@ -95,33 +95,41 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 3: Constructor de Estimates `feat/estimates`
-**Estado**: [ ] Pendiente
+**Estado**: [x] Completado
 
 #### Backend
-- [ ] Migración `create_estimates_table`: customer_id, unit_id, status (enum), public_token (UUID), subtotal_parts, subtotal_labor, shop_supplies_amount, tax_amount, total, notes, approved_at, approved_ip, timestamps
-- [ ] Migración `create_estimate_lines_table`: estimate_id, lineable_type/id (polymorphic → Part o LaborService), description, quantity, unit_price, line_total, sort_order
-- [ ] Modelo `Estimate` con relaciones, estados (enum: draft, sent, approved, invoiced)
-- [ ] Modelo `EstimateLine` con relación polymorphic
-- [ ] DTOs: `EstimateData`, `EstimateLineData`
-- [ ] `EstimateController` — CRUD, envío, cálculo automático
-- [ ] Action `CalculateEstimateTotalsAction` — calcula subtotales, shop supplies, tax, total
-- [ ] Action `SendEstimateAction` — genera link público, envía por WhatsApp/email
-- [ ] Rutas para CRUD y acciones especiales (send, approve)
+- [x] Migración `create_estimates_table`: customer_id, unit_id, status (enum), public_token (UUID), subtotal_parts, subtotal_labor, shop_supplies_amount, tax_amount, total, notes, approved_at, approved_ip, timestamps
+- [x] Migración `create_estimate_lines_table`: estimate_id, lineable_type/id (polymorphic → Part o LaborService), description, quantity, unit_price, line_total, sort_order
+- [x] Modelo `Estimate` con relaciones, estados (enum: draft, sent, approved, invoiced)
+- [x] Modelo `EstimateLine` con relación polymorphic
+- [x] DTOs: `EstimateData`, `EstimateLineData`
+- [x] `EstimateController` — CRUD, envío, cálculo automático
+- [x] Action `CalculateEstimateTotalsAction` — calcula subtotales, shop supplies, tax, total
+- [x] Action `SendEstimateAction` — genera link público, envía por WhatsApp/email
+- [x] Rutas para CRUD y acciones especiales (send, approve)
 
 #### Frontend
-- [ ] Página `estimates/index.tsx` — Lista con badges de estado (colores)
-- [ ] Página `estimates/create.tsx` — Constructor con búsqueda unificada de partes y servicios
-- [ ] Página `estimates/show.tsx` — Vista de detalle con acciones
-- [ ] Página `estimates/edit.tsx` — Edición (solo en draft/sent)
-- [ ] Componente búsqueda unificada de catálogo (partes + servicios agrupados)
-- [ ] Cálculo automático en frontend (preview) + backend (source of truth)
+- [x] Página `estimates/index.tsx` — Lista con badges de estado (colores)
+- [x] Página `estimates/create.tsx` — Constructor con búsqueda unificada de partes y servicios
+- [x] Página `estimates/show.tsx` — Vista de detalle con acciones
+- [x] Página `estimates/edit.tsx` — Edición (solo en draft/sent)
+- [x] Componente búsqueda unificada de catálogo (partes + servicios agrupados)
+- [x] Cálculo automático en frontend (preview) + backend (source of truth)
 
 #### Tests
-- [ ] Feature: CRUD estimates
-- [ ] Feature: Cálculo de totales (shop supplies, tax)
-- [ ] Feature: Estados y transiciones
-- [ ] Feature: Líneas polymorphic (partes y servicios)
-- [ ] Feature: Búsqueda de catálogo
+- [x] Feature: CRUD estimates
+- [x] Feature: Cálculo de totales (shop supplies, tax)
+- [x] Feature: Estados y transiciones
+- [x] Feature: Líneas polymorphic (partes y servicios)
+- [x] Feature: Búsqueda de catálogo
+
+#### Notas de implementación
+- Enum `EstimateStatus` con 4 estados: draft, sent, approved, invoiced
+- Polymorphic lines con `lineable_type` (Part o LaborService) + `lineable_id`
+- `CalculateEstimateTotalsAction` calcula subtotales, shop supplies (3%), tax (8.25%)
+- `SendEstimateAction` genera `public_token` UUID y marca como sent
+- Búsqueda unificada de catálogo con agrupación por tipo (partes/servicios)
+- Cálculo automático en frontend (preview) + backend (source of truth)
 
 ---
 
@@ -166,28 +174,42 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 5: Notificaciones y Facturación `feat/invoicing`
-**Estado**: [ ] Pendiente
+**Estado**: [x] Completado (MVP — sin notificaciones externas)
 
 #### Backend
-- [ ] Migración `create_invoices_table`: estimate_id, invoice_number (INV-0001), issued_at, subtotal_parts, subtotal_labor, shop_supplies_amount, tax_amount, total, timestamps
-- [ ] Modelo `Invoice` con numeración secuencial
-- [ ] Action `ConvertEstimateToInvoiceAction` — crea invoice, descuenta inventario
-- [ ] Action `NotifyVehicleReadyAction` — envía WhatsApp (Twilio) + Email (Resend)
-- [ ] Generación de PDF con barryvdh/laravel-dompdf
-- [ ] Warning visual si stock insuficiente (permite negativo)
+- [x] Migración `create_invoices_table`: estimate_id (unique FK), invoice_number (INV-0001), issued_at, totales copiados del estimate, timestamps
+- [x] Modelo `Invoice` con numeración secuencial (`generateInvoiceNumber()` con lockForUpdate)
+- [x] Action `ConvertEstimateToInvoiceAction` — crea invoice, descuenta inventario, marca estimate como invoiced (transacción)
+- [x] Action `DeductInventoryAction` — recorre líneas de tipo Part y decrementa stock, retorna warnings
+- [x] Generación de PDF con barryvdh/laravel-dompdf — template Blade funcional
+- [x] Warning visual si stock insuficiente (permite negativo con confirmación)
+- [x] API endpoint `stock-warnings` para verificar stock antes de convertir
+- [ ] Action `NotifyVehicleReadyAction` — envía WhatsApp (Twilio) + Email (Resend) *(diferido — requiere cuentas externas)*
 
 #### Frontend
-- [ ] Botón "Vehicle Ready" en estimate aprobado
-- [ ] Botón "Convert to Invoice" en estimate aprobado
-- [ ] Página `invoices/show.tsx` — Detalle del invoice
-- [ ] Descarga de PDF
+- [x] Botón "Convert to Invoice" en estimate aprobado (con verificación de stock previa)
+- [x] Warning card con stock insuficiente y opción "Convert Anyway"
+- [x] Botón "View Invoice" en estimate convertido (link al invoice)
+- [x] Página `invoices/show.tsx` — Detalle del invoice con datos del estimate
+- [x] Descarga de PDF desde la página del invoice
+- [ ] Botón "Vehicle Ready" *(diferido — requiere Twilio/Resend)*
 
-#### Tests
-- [ ] Feature: Conversión estimate → invoice
-- [ ] Feature: Numeración secuencial INV-0001
-- [ ] Feature: Descuento de inventario
-- [ ] Feature: Warning de stock negativo
-- [ ] Feature: Generación de PDF
+#### Tests (17 backend)
+- [x] Feature: Guest protection (4 tests: store, show, pdf, stock-warnings)
+- [x] Feature: Conversión estimate → invoice (approved, deducción stock, stock negativo)
+- [x] Feature: Guards (draft/sent no pueden convertirse, no doble conversión)
+- [x] Feature: Numeración secuencial INV-0001
+- [x] Feature: Show invoice con relaciones
+- [x] Feature: Generación de PDF
+- [x] Feature: Stock warnings API (insuficiente, suficiente, ignora labor services)
+
+#### Notas de implementación
+- Invoice copia totales del estimate (snapshot, no recalcula)
+- Un estimate = un invoice (1:1, `estimate_id` unique constraint)
+- Stock se descuenta al facturar, no al aprobar (flexibilidad operacional)
+- barryvdh/laravel-dompdf v3.1 con template Blade básico
+- Notificaciones externas (Twilio, Resend) diferidas hasta tener las cuentas configuradas
+- 189 backend tests pasando (172 existentes + 17 nuevos)
 
 ---
 
