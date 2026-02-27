@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\LaborService;
 use App\Models\Part;
+use App\Models\Setting;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -72,6 +73,8 @@ class EstimateController extends Controller
                 'customer_id' => $validated['customer_id'],
                 'unit_id' => $validated['unit_id'] ?? null,
                 'notes' => $validated['notes'] ?? null,
+                'shop_supplies_rate' => Setting::get('shop_supplies_rate', '0.0500'),
+                'tax_rate' => Setting::get('tax_rate', '0.0825'),
             ]);
 
             $this->syncLines($estimate, $validated['lines']);

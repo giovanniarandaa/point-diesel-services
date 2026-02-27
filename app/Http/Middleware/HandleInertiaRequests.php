@@ -44,7 +44,10 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim((string) $message), 'author' => trim((string) $author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge(
+                    $request->user()->toArray(),
+                    ['roles' => $request->user()->getRoleNames()]
+                ) : null,
             ],
             'lowStockCount' => fn () => $request->user() ? Part::lowStock()->count() : 0,
             'flash' => [
