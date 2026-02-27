@@ -95,33 +95,41 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 3: Constructor de Estimates `feat/estimates`
-**Estado**: [ ] Pendiente
+**Estado**: [x] Completado
 
 #### Backend
-- [ ] Migración `create_estimates_table`: customer_id, unit_id, status (enum), public_token (UUID), subtotal_parts, subtotal_labor, shop_supplies_amount, tax_amount, total, notes, approved_at, approved_ip, timestamps
-- [ ] Migración `create_estimate_lines_table`: estimate_id, lineable_type/id (polymorphic → Part o LaborService), description, quantity, unit_price, line_total, sort_order
-- [ ] Modelo `Estimate` con relaciones, estados (enum: draft, sent, approved, invoiced)
-- [ ] Modelo `EstimateLine` con relación polymorphic
-- [ ] DTOs: `EstimateData`, `EstimateLineData`
-- [ ] `EstimateController` — CRUD, envío, cálculo automático
-- [ ] Action `CalculateEstimateTotalsAction` — calcula subtotales, shop supplies, tax, total
-- [ ] Action `SendEstimateAction` — genera link público, envía por WhatsApp/email
-- [ ] Rutas para CRUD y acciones especiales (send, approve)
+- [x] Migración `create_estimates_table`: customer_id, unit_id, status (enum), public_token (UUID), subtotal_parts, subtotal_labor, shop_supplies_amount, tax_amount, total, notes, approved_at, approved_ip, timestamps
+- [x] Migración `create_estimate_lines_table`: estimate_id, lineable_type/id (polymorphic → Part o LaborService), description, quantity, unit_price, line_total, sort_order
+- [x] Modelo `Estimate` con relaciones, estados (enum: draft, sent, approved, invoiced)
+- [x] Modelo `EstimateLine` con relación polymorphic
+- [x] DTOs: `EstimateData`, `EstimateLineData`
+- [x] `EstimateController` — CRUD, envío, cálculo automático
+- [x] Action `CalculateEstimateTotalsAction` — calcula subtotales, shop supplies, tax, total
+- [x] Action `SendEstimateAction` — genera link público, envía por WhatsApp/email
+- [x] Rutas para CRUD y acciones especiales (send, approve)
 
 #### Frontend
-- [ ] Página `estimates/index.tsx` — Lista con badges de estado (colores)
-- [ ] Página `estimates/create.tsx` — Constructor con búsqueda unificada de partes y servicios
-- [ ] Página `estimates/show.tsx` — Vista de detalle con acciones
-- [ ] Página `estimates/edit.tsx` — Edición (solo en draft/sent)
-- [ ] Componente búsqueda unificada de catálogo (partes + servicios agrupados)
-- [ ] Cálculo automático en frontend (preview) + backend (source of truth)
+- [x] Página `estimates/index.tsx` — Lista con badges de estado (colores)
+- [x] Página `estimates/create.tsx` — Constructor con búsqueda unificada de partes y servicios
+- [x] Página `estimates/show.tsx` — Vista de detalle con acciones
+- [x] Página `estimates/edit.tsx` — Edición (solo en draft/sent)
+- [x] Componente búsqueda unificada de catálogo (partes + servicios agrupados)
+- [x] Cálculo automático en frontend (preview) + backend (source of truth)
 
 #### Tests
-- [ ] Feature: CRUD estimates
-- [ ] Feature: Cálculo de totales (shop supplies, tax)
-- [ ] Feature: Estados y transiciones
-- [ ] Feature: Líneas polymorphic (partes y servicios)
-- [ ] Feature: Búsqueda de catálogo
+- [x] Feature: CRUD estimates
+- [x] Feature: Cálculo de totales (shop supplies, tax)
+- [x] Feature: Estados y transiciones
+- [x] Feature: Líneas polymorphic (partes y servicios)
+- [x] Feature: Búsqueda de catálogo
+
+#### Notas de implementación
+- Enum `EstimateStatus` con 4 estados: draft, sent, approved, invoiced
+- Polymorphic lines con `lineable_type` (Part o LaborService) + `lineable_id`
+- `CalculateEstimateTotalsAction` calcula subtotales, shop supplies (3%), tax (8.25%)
+- `SendEstimateAction` genera `public_token` UUID y marca como sent
+- Búsqueda unificada de catálogo con agrupación por tipo (partes/servicios)
+- Cálculo automático en frontend (preview) + backend (source of truth)
 
 ---
 
