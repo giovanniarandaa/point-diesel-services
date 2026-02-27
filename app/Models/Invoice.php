@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
  * @property numeric $tax_rate
  * @property numeric $tax_amount
  * @property numeric $total
+ * @property \Illuminate\Support\Carbon|null $notified_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Estimate $estimate
@@ -49,6 +50,7 @@ class Invoice extends Model
         'tax_rate',
         'tax_amount',
         'total',
+        'notified_at',
     ];
 
     /**
@@ -65,6 +67,7 @@ class Invoice extends Model
             'tax_rate' => 'decimal:4',
             'tax_amount' => 'decimal:2',
             'total' => 'decimal:2',
+            'notified_at' => 'datetime',
         ];
     }
 
@@ -91,5 +94,17 @@ class Invoice extends Model
         $number = (int) Str::after($last, 'INV-');
 
         return 'INV-'.str_pad((string) ($number + 1), 4, '0', STR_PAD_LEFT);
+    }
+
+    public function markAsNotified(): void
+    {
+        $this->update([
+            'notified_at' => now(),
+        ]);
+    }
+
+    public function wasNotified(): bool
+    {
+        return $this->notified_at !== null;
     }
 }

@@ -109,6 +109,7 @@ export interface Invoice {
     tax_rate: string;
     tax_amount: string;
     total: string;
+    notified_at: string | null;
     created_at: string;
     updated_at: string;
     estimate?: Estimate;

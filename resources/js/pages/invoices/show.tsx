@@ -6,8 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency, formatLineType } from '@/lib/estimate-helpers';
 import { type BreadcrumbItem, type Invoice } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { Download, FileText } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { CheckCircle, Download, FileText, Truck } from 'lucide-react';
+import { useState } from 'react';
 
 interface Props {
     invoice: Invoice;
@@ -15,6 +16,20 @@ interface Props {
 
 export default function ShowInvoice({ invoice }: Props) {
     const estimate = invoice.estimate;
+    const [notifying, setNotifying] = useState(false);
+
+    const handleNotify = () => {
+        if (confirm('Notify the customer that their vehicle is ready for pickup?')) {
+            setNotifying(true);
+            router.post(
+                route('invoices.notify', invoice.id),
+                {},
+                {
+                    onFinish: () => setNotifying(false),
+                },
+            );
+        }
+    };
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Estimates', href: '/estimates' },
@@ -39,6 +54,17 @@ export default function ShowInvoice({ invoice }: Props) {
                         <Badge variant="outline">Invoiced</Badge>
                     </div>
                     <div className="flex items-center gap-2">
+                        {!invoice.notified_at ? (
+                            <Button variant="default" size="sm" onClick={handleNotify} disabled={notifying}>
+                                <Truck className="mr-2 h-4 w-4" />
+                                {notifying ? 'Notifying...' : 'Vehicle Ready'}
+                            </Button>
+                        ) : (
+                            <Badge variant="outline" className="gap-1 border-green-300 text-green-700 dark:border-green-700 dark:text-green-400">
+                                <CheckCircle className="h-3 w-3" />
+                                Notified {new Date(invoice.notified_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </Badge>
+                        )}
                         <Button variant="outline" size="sm" asChild>
                             <a href={route('invoices.pdf', invoice.id)} download>
                                 <Download className="mr-2 h-4 w-4" />

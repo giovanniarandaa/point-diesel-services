@@ -7,6 +7,8 @@ use App\Models\Invoice;
 use App\Models\LaborService;
 use App\Models\Part;
 use App\Models\User;
+use App\Notifications\VehicleReadyNotification;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia;
 
 // Guest protection
@@ -28,6 +30,11 @@ test('guests cannot download invoice pdfs', function () {
 test('guests cannot access stock warnings api', function () {
     $estimate = Estimate::factory()->approved()->create();
     $this->get(route('api.stock-warnings', $estimate))->assertRedirect(route('login'));
+});
+
+test('guests cannot notify vehicle ready', function () {
+    $invoice = Invoice::factory()->create();
+    $this->post(route('invoices.notify', $invoice))->assertRedirect(route('login'));
 });
 
 // Convert to Invoice
@@ -289,4 +296,44 @@ test('stock warnings api ignores labor service lines', function () {
 
     $response->assertOk();
     $response->assertJsonCount(0);
+});
+
+// Vehicle Ready notification
+test('vehicle ready marks invoice as notified', function () {
+    Notification::fake();
+    $user = User::factory()->create();
+    $invoice = Invoice::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('invoices.notify', $invoice))
+        ->assertRedirect(route('invoices.show', $invoice))
+        ->assertSessionHas('success', 'Customer has been notified that the vehicle is ready for pickup.');
+
+    $invoice->refresh();
+    expect($invoice->notified_at)->not->toBeNull();
+});
+
+test('vehicle ready is idempotent', function () {
+    Notification::fake();
+    $user = User::factory()->create();
+    $invoice = Invoice::factory()->create(['notified_at' => now()]);
+
+    $this->actingAs($user)
+        ->post(route('invoices.notify', $invoice))
+        ->assertRedirect(route('invoices.show', $invoice))
+        ->assertSessionHas('success', 'Customer was already notified.');
+
+    Notification::assertNothingSent();
+});
+
+test('vehicle ready dispatches notification to customer', function () {
+    Notification::fake();
+    $user = User::factory()->create();
+    $invoice = Invoice::factory()->create();
+    $customer = $invoice->estimate->customer;
+
+    $this->actingAs($user)
+        ->post(route('invoices.notify', $invoice));
+
+    Notification::assertSentTo($customer, VehicleReadyNotification::class);
 });

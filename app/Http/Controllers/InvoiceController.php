@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Invoice\ConvertEstimateToInvoiceAction;
+use App\Actions\Invoice\NotifyVehicleReadyAction;
 use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\Part;
@@ -56,6 +57,17 @@ class InvoiceController extends Controller
         $pdf = Pdf::loadView('pdf.invoice', ['invoice' => $invoice]);
 
         return $pdf->download($invoice->invoice_number.'.pdf');
+    }
+
+    public function notify(Invoice $invoice, NotifyVehicleReadyAction $action): RedirectResponse
+    {
+        $sent = $action->execute($invoice);
+
+        if (! $sent) {
+            return to_route('invoices.show', $invoice)->with('success', 'Customer was already notified.');
+        }
+
+        return to_route('invoices.show', $invoice)->with('success', 'Customer has been notified that the vehicle is ready for pickup.');
     }
 
     public function stockWarnings(Estimate $estimate): \Illuminate\Http\JsonResponse
