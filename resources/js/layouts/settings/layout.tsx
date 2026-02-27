@@ -2,29 +2,45 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Profile',
-        url: '/settings/profile',
-        icon: null,
-    },
-    {
-        title: 'Password',
-        url: '/settings/password',
-        icon: null,
-    },
-    {
-        title: 'Appearance',
-        url: '/settings/appearance',
-        icon: null,
-    },
-];
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
     const currentPath = window.location.pathname;
+    const { auth } = usePage<SharedData>().props;
+    const isAdmin = auth.user.roles?.includes('admin');
+
+    const sidebarNavItems: NavItem[] = [
+        {
+            title: 'Profile',
+            url: '/settings/profile',
+            icon: null,
+        },
+        {
+            title: 'Password',
+            url: '/settings/password',
+            icon: null,
+        },
+        {
+            title: 'Appearance',
+            url: '/settings/appearance',
+            icon: null,
+        },
+        ...(isAdmin
+            ? [
+                  {
+                      title: 'Business',
+                      url: '/settings/business',
+                      icon: null,
+                  },
+                  {
+                      title: 'Users',
+                      url: '/settings/users',
+                      icon: null,
+                  },
+              ]
+            : []),
+    ];
 
     return (
         <div className="px-4 py-6">

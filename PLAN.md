@@ -257,23 +257,43 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 7: Configuración `feat/settings-business`
-**Estado**: [ ] Pendiente
+**Estado**: [x] Completado
 
 #### Backend
-- [ ] Migración `create_settings_table`: key (unique), value, type
-- [ ] Modelo `Setting` o config pattern (key-value)
-- [ ] Default: shop_supplies_rate, tax_rate (8.25%)
-- [ ] `BusinessSettingsController` — edit, update
-- [ ] Gestión de usuarios con Spatie Permission (roles: admin, encargado)
+- [x] Migración `create_settings_table`: key (primary), value, timestamps — seeded con shop_supplies_rate (0.0500) y tax_rate (0.0825)
+- [x] Migración Spatie Permission tables (roles, permissions, model_has_roles, etc.)
+- [x] Modelo `Setting` con helpers estáticos `get()` y `set()` para key-value pattern
+- [x] `BusinessSettingsController` — edit, update (admin-only vía middleware + FormRequest authorize)
+- [x] `UserController` — CRUD completo (index, create, store, edit, update, destroy) con asignación de roles
+- [x] Spatie Laravel Permission v7 con roles: `admin`, `encargado`
+- [x] Middleware `role:admin` registrado en bootstrap/app.php
+- [x] `EstimateController@store` actualizado para copiar rates de Settings al crear estimate (copy-on-create)
+- [x] `HandleInertiaRequests` actualizado para compartir roles del usuario
+- [x] Form Requests: `UpdateBusinessSettingsRequest`, `StoreUserRequest`, `UpdateUserRequest` (authorize con hasRole)
+- [x] `RoleSeeder` + `DatabaseSeeder` actualizado para crear roles y asignar admin al test user
+- [x] User model con trait `HasRoles` de Spatie
+- [x] UserFactory con estados `admin()` y `encargado()`
 
 #### Frontend
-- [ ] Página `settings/business.tsx` — Shop supplies %, Tax rate %
-- [ ] Página `settings/users.tsx` — CRUD de usuarios con roles
-- [ ] Sub-navegación dentro de Settings
+- [x] Página `settings/business.tsx` — Formulario con Shop Supplies Rate (%) y Tax Rate (%), transform de porcentaje a decimal
+- [x] Página `settings/users/index.tsx` — Lista de usuarios con roles (Badge), acciones edit/delete
+- [x] Página `settings/users/create.tsx` — Formulario con nombre, email, password, confirmación, rol (Select)
+- [x] Página `settings/users/edit.tsx` — Edición con password opcional
+- [x] Sub-navegación condicional en Settings: "Business" y "Users" solo visibles para admin
+- [x] Tipos TypeScript actualizados: `roles?: string[]` en User interface
 
-#### Tests
-- [ ] Feature: CRUD settings
-- [ ] Feature: Gestión de usuarios y roles
+#### Tests (32 backend)
+- [x] Feature: BusinessSettings — guest guards, encargado denied, admin CRUD, validaciones rate, flash success (9 tests)
+- [x] Feature: UserManagement — guest guards (6), encargado denied (2), admin CRUD (6), validaciones (4), self-delete prevention (1), flash messages (2) (21 tests)
+- [x] Feature: EstimateSettingsIntegration — new estimate uses settings rates, changing settings doesn't affect existing estimates (2 tests)
+
+#### Notas de implementación
+- Settings como key-value simple (sin type column, todo es string) — suficiente para 2 settings
+- Copy-on-create pattern: rates se copian de Settings a estimate al crear, cambios futuros no afectan estimates existentes
+- Encargado puede hacer todo excepto acceder a Business Settings y User Management
+- Prevención de auto-eliminación: admin no puede borrar su propia cuenta (retorna error, no success)
+- Roles compartidos como string array via `getRoleNames()` en HandleInertiaRequests
+- 234 backend tests pasando (202 existentes + 32 nuevos)
 
 ---
 
