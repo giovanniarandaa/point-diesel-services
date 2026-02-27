@@ -174,17 +174,22 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 ---
 
 ### Módulo 5: Notificaciones y Facturación `feat/invoicing`
-**Estado**: [x] Completado (MVP — sin notificaciones externas)
+**Estado**: [x] Completado
 
 #### Backend
 - [x] Migración `create_invoices_table`: estimate_id (unique FK), invoice_number (INV-0001), issued_at, totales copiados del estimate, timestamps
-- [x] Modelo `Invoice` con numeración secuencial (`generateInvoiceNumber()` con lockForUpdate)
+- [x] Migración `add_notified_at_to_invoices_table`: campo `notified_at` para idempotencia de notificaciones
+- [x] Modelo `Invoice` con numeración secuencial (`generateInvoiceNumber()` con lockForUpdate), `markAsNotified()`, `wasNotified()`
 - [x] Action `ConvertEstimateToInvoiceAction` — crea invoice, descuenta inventario, marca estimate como invoiced (transacción)
 - [x] Action `DeductInventoryAction` — recorre líneas de tipo Part y decrementa stock, retorna warnings
+- [x] Action `NotifyVehicleReadyAction` — envía notificación multicanal (Email + WhatsApp), idempotente
+- [x] `VehicleReadyNotification` — Laravel Notification con canales condicionales (mail si Resend configurado, WhatsApp si Twilio configurado)
+- [x] `TwilioWhatsAppChannel` — canal custom de Laravel Notifications para WhatsApp vía Twilio SDK
 - [x] Generación de PDF con barryvdh/laravel-dompdf — template Blade funcional
 - [x] Warning visual si stock insuficiente (permite negativo con confirmación)
 - [x] API endpoint `stock-warnings` para verificar stock antes de convertir
-- [ ] Action `NotifyVehicleReadyAction` — envía WhatsApp (Twilio) + Email (Resend) *(diferido — requiere cuentas externas)*
+- [x] Resend como mail provider (`resend/resend-laravel`)
+- [x] Twilio SDK para WhatsApp (`twilio/sdk`) — sandbox configurado
 
 #### Frontend
 - [x] Botón "Convert to Invoice" en estimate aprobado (con verificación de stock previa)
@@ -192,24 +197,28 @@ Cada módulo se implementa en su propia rama y se mergea a master al completar.
 - [x] Botón "View Invoice" en estimate convertido (link al invoice)
 - [x] Página `invoices/show.tsx` — Detalle del invoice con datos del estimate
 - [x] Descarga de PDF desde la página del invoice
-- [ ] Botón "Vehicle Ready" *(diferido — requiere Twilio/Resend)*
+- [x] Botón "Vehicle Ready" — envía Email + WhatsApp al cliente, se reemplaza por badge "Notified" verde
 
-#### Tests (17 backend)
-- [x] Feature: Guest protection (4 tests: store, show, pdf, stock-warnings)
+#### Tests (21 backend)
+- [x] Feature: Guest protection (5 tests: store, show, pdf, stock-warnings, notify)
 - [x] Feature: Conversión estimate → invoice (approved, deducción stock, stock negativo)
 - [x] Feature: Guards (draft/sent no pueden convertirse, no doble conversión)
 - [x] Feature: Numeración secuencial INV-0001
 - [x] Feature: Show invoice con relaciones
 - [x] Feature: Generación de PDF
 - [x] Feature: Stock warnings API (insuficiente, suficiente, ignora labor services)
+- [x] Feature: Vehicle Ready (marca notified, idempotente, dispatches notification)
 
 #### Notas de implementación
 - Invoice copia totales del estimate (snapshot, no recalcula)
 - Un estimate = un invoice (1:1, `estimate_id` unique constraint)
 - Stock se descuenta al facturar, no al aprobar (flexibilidad operacional)
 - barryvdh/laravel-dompdf v3.1 con template Blade básico
-- Notificaciones externas (Twilio, Resend) diferidas hasta tener las cuentas configuradas
-- 189 backend tests pasando (172 existentes + 17 nuevos)
+- Notificación idempotente: `notified_at` timestamp previene doble envío
+- Canales condicionales: email se salta si `MAIL_MAILER=log`, WhatsApp se salta si no hay `TWILIO_SID`
+- Customer model usa trait `Notifiable` con `routeNotificationForTwilioWhatsapp()` retornando campo `phone`
+- Twilio sandbox activo (expira cada 72h, producción requiere WhatsApp Business approval)
+- 193 backend tests pasando (172 existentes + 21 nuevos)
 
 ---
 
