@@ -131,6 +131,21 @@ export interface CatalogItem {
     price: string;
 }
 
+export interface DashboardStats {
+    totalEstimates: number;
+    activeEstimates: number;
+    invoicesThisMonth: number;
+    revenueThisMonth: string;
+}
+
+export interface LowStockPart {
+    id: number;
+    sku: string;
+    name: string;
+    stock: number;
+    min_stock: number;
+}
+
 export interface PaginatedData<T> {
     data: T[];
     current_page: number;
